@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open:*)",
+      "Bash(git checkout:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(sample JPEGDeux:*)",
+      "Bash(pkill:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(security find-identity:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
