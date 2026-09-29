@@ -167,7 +167,10 @@
 }
 
 - (void)setImage:(NSImage*)image {
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
     [self performSelector:myTransition withObject:image];
+    #pragma clang diagnostic pop
 }
 
 - (void)setBackgroundColor:(NSColor*)color {

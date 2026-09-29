@@ -65,10 +65,13 @@ typedef enum {
     IBOutlet NSWindow* myWindow;
     IBOutlet PrefsManager* myPrefsManager;
     IBOutlet NSButton* myShouldPrecacheButton;
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     IBOutlet NSDrawer* myDrawer;
+    IBOutlet NSDrawer* myTransitionDrawer;
+    #pragma clang diagnostic pop
     IBOutlet BackgroundImageView* myPreview;
     IBOutlet NSButton* myDisplayCommentButton;
-    IBOutlet NSDrawer* myTransitionDrawer;
     IBOutlet NSButton* myShowFileListButton;
     IBOutlet NSButton* myMoviesOnlyButton;
     IBOutlet NSButton* mySkipICloudFilesButton;

@@ -25,6 +25,7 @@
 #import "ModernWindowController.h"
 #import "FileListPanel.h"
 #import "ImageLoader.h"
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 NSString* const CancelShowException=@"CancelShow";
 
@@ -85,7 +86,10 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     Class class;
     class=[DefaultTransitionChooser classForShowTypeByTag:[myDisplayModeClass tagNumber]];
     myTransitionChooser=[class loadView];
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     [myTransitionDrawer setContentView:[myTransitionChooser view]];
+    #pragma clang diagnostic pop
 }
 
 - (id)init {
@@ -151,7 +155,6 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 
 - (void)loadFromDictionary:(NSDictionary*)dict {
     int tag;
-    NSArray* oldFiles;
     const id classes[]={[WindowShow class], [ScreenShow class], [DockShow class]};
     myShouldLoop=[dict boolForKey:@"ShouldLoop"];
     myShouldRandomize=[dict boolForKey:@"ShouldRandom"];
@@ -250,7 +253,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 	
 	[panel setDirectoryURL:[[NSURL alloc] initWithString:startingDirectory]];
 	// Use MediaUtils to support both images and videos
-	[panel setAllowedFileTypes:[MediaUtils supportedFileTypes]];
+	[panel setAllowedContentTypes:[MediaUtils supportedFileTypesAsUTTypes]];
 	[panel beginSheetModalForWindow:[myFilesTable window] completionHandler:^(NSInteger returnCode)
 	{
 		[self openPanelDidEnd:panel returnCode:returnCode contextInfo:NULL];
@@ -454,7 +457,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 - (IBAction)saveDocumentAs:(id)sender {
     NSSavePanel* panel=[NSSavePanel savePanel];
     NSInteger result=[panel runModal];
-    if (result==NSFileHandlingPanelOKButton) {
+    if (result==NSModalResponseOK) {
         myCurrentSavingPath=[[[panel URL] absoluteString] copy];
         [self saveDocument:sender];
     }
@@ -521,13 +524,19 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     NSUserDefaults* prefs=[NSUserDefaults standardUserDefaults];
     NSDictionary* dict=[self getSavingDictionary];
     [prefs setObject:dict forKey:@"LastSlideshow"];
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     [prefs setBool:([myDrawer state]==NSDrawerOpenState || [myDrawer state]==NSDrawerOpeningState)
             forKey:@"PreviewDrawerIsOpen"];
+    #pragma clang diagnostic pop
     [prefs synchronize];
 }
 
 - (void)displayImageLoop {
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     const BOOL drawerIsOpen=([myDrawer state]==NSDrawerOpenState || [myDrawer state]==NSDrawerOpeningState);
+    #pragma clang diagnostic pop
     [myWindow orderOut:self];
 	
     @try {
@@ -602,9 +611,12 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
         // Close file list panel when slideshow ends
         [[FileListPanel sharedPanel] orderOut:nil];
 
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
         if (drawerIsOpen) [myDrawer close];
         [myWindow makeKeyAndOrderFront:self];
         if (drawerIsOpen) [myDrawer open];
+        #pragma clang diagnostic pop
 }
 
 - (EventAction)handleEvent:(NSEvent*)event {

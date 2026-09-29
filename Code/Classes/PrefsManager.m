@@ -128,6 +128,8 @@ static NSString* displayStringForKey(unichar key) {
         unsigned i;
         NSPopUpButtonCell* button;
         i=0;
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wundeclared-selector"
         selectors[i++]=SEL2STR(kbNextPic:);
         selectors[i++]=SEL2STR(kbPrevPic:);
         selectors[i++]=SEL2STR(kbEndShow:);
@@ -137,6 +139,7 @@ static NSString* displayStringForKey(unichar key) {
         selectors[i++]=SEL2STR(kbToggleComments:);
         selectors[i++]=SEL2STR(kbToggleFileList:);
         selectors[i++]=SEL2STR(kbCycleFilename:);
+        #pragma clang diagnostic pop
         mySelectorDisplayStrings=[[NSDictionary alloc] initWithObjects:displayers
                                                                forKeys:selectors
                                                                  count:sizeof selectors/sizeof *selectors];
@@ -144,7 +147,6 @@ static NSString* displayStringForKey(unichar key) {
         for (i=1; i < sizeof displayers / sizeof *displayers; i++) {
             [button addItemWithTitle:displayers[i]];
         }
-        [button setControlSize:NSSmallControlSize];
         [button setFont:[NSFont systemFontOfSize:11]];
         [[myTable tableColumnWithIdentifier:@"action"] setDataCell:button];
         [myTable setTarget:self];
@@ -194,6 +196,8 @@ static NSString* displayStringForKey(unichar key) {
 
 - (IBAction)revertToDefaults:(id)sender {
     // Only include keybindings that actually work
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wundeclared-selector"
     myKeyBindings=[[NSMutableArray alloc] initWithObjects:
         [KeyBinding bindingWithKey:NSRightArrowFunctionKey action:@selector(kbNextPic:)],
         [KeyBinding bindingWithKey:NSDownArrowFunctionKey action:@selector(kbNextPic:)],
@@ -204,6 +208,7 @@ static NSString* displayStringForKey(unichar key) {
         [KeyBinding bindingWithKey:'\t' action:@selector(kbToggleFileList:)],
         [KeyBinding bindingWithKey:'p' action:@selector(kbCycleFilename:)],
         NULL];
+    #pragma clang diagnostic pop
     [myTable reloadData];
 }
 

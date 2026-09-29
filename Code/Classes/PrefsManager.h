@@ -11,6 +11,7 @@
 }
 
 + (KeyBinding*)bindingWithKey:(unichar)key action:(SEL)action;
+- (NSComparisonResult)comparer:(KeyBinding*)other;
 
 @end
 

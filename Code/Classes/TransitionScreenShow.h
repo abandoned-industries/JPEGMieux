@@ -9,8 +9,9 @@
 
 #import "SlideShow.h"
 #import "ScreenShow.h"
+#import <QuartzCore/QuartzCore.h>
 
-@interface TransitionScreenShow : ScreenShow {
+@interface TransitionScreenShow : ScreenShow <CAAnimationDelegate> {
     NSWindow* myOtherCoveringWindow;
     BackgroundImageView* myOtherImageView;
     SEL myTransition;

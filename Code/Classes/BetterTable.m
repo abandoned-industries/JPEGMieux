@@ -11,7 +11,7 @@
 @implementation BetterTable
 
 - (void)awakeFromNib {
-    [self registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
+    [self registerForDraggedTypes:[NSArray arrayWithObjects:NSPasteboardTypeFileURL, nil]];
     //[[[self enclosingScrollView] contentView] setCopiesOnScroll:YES];
 }
 

@@ -16,16 +16,19 @@
 - (BOOL)outlineView:(NSOutlineView*)view writeItems:(NSArray*)items toPasteboard:(NSPasteboard*)board {
     NSEnumerator* enumer=[items objectEnumerator];
     id object;
-    NSMutableArray* hier, * names;
-    [board declareTypes:@[HierarchyPBoardType, NSFilenamesPboardType]
+    NSMutableArray* hier, * fileURLs;
+    [board declareTypes:@[HierarchyPBoardType, NSPasteboardTypeFileURL]
                   owner:nil];
     hier = [NSMutableArray arrayWithCapacity:(NSUInteger) [view numberOfSelectedRows]];
-    names = [NSMutableArray arrayWithCapacity:(NSUInteger) [view numberOfSelectedRows]];
+    fileURLs = [NSMutableArray arrayWithCapacity:(NSUInteger) [view numberOfSelectedRows]];
     while ((object=[enumer nextObject])) {
         [hier addObject:object];
-        [names addObject:[object filename]];
+        NSString *filename = [object filename];
+        if (filename) {
+            [fileURLs addObject:[NSURL fileURLWithPath:filename]];
+        }
     }
-    [board setPropertyList:names forType:NSFilenamesPboardType];
+    [board writeObjects:fileURLs forClasses:@[NSURL.class] options:nil];
     [board setPropertyList:hier forType:HierarchyPBoardType];
     return YES;
 }
@@ -39,9 +42,10 @@
     NSPasteboard* board=[info draggingPasteboard];
     NSString* type;
     type= [board availableTypeFromArray:@[HierarchyPBoardType,
-                NSFilenamesPboardType]];
-    if ([type isEqualToString:NSFilenamesPboardType]) {
-        NSArray* files=[board propertyListForType:NSFilenamesPboardType];
+                NSPasteboardTypeFileURL]];
+    if ([type isEqualToString:NSPasteboardTypeFileURL]) {
+        NSArray* fileURLs = [board readObjectsForClasses:@[NSURL.class]
+                                                  options:@{NSPasteboardURLReadingFileURLsOnlyKey:@YES}];
         long max;
         NSUInteger i;
         NSMutableArray* contents;
@@ -51,10 +55,11 @@
         [self saveUndoableState];
         if (item==NULL) contents=myFileHierarchyArray;
         else contents=[item contents];
-        max=[files count];
+        max=[fileURLs count];
         if (index < 0) index=0;
         for (i=0; i<max; i++) {
-            id hierarchy=[FileHierarchy hierarchyWithPath:files[i] recursive:myShouldRecursivelyScanSubdirectories];
+            NSString *filePath = [(NSURL*)fileURLs[i] path];
+            id hierarchy=[FileHierarchy hierarchyWithPath:filePath recursive:myShouldRecursivelyScanSubdirectories];
             if (hierarchy) {
                 [contents insertObject:hierarchy atIndex:index++];
             }
@@ -155,7 +160,10 @@
 }
 
 - (void)outlineViewSelectionDidChange:(NSNotification*)notification {
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     if ([myDrawer state]==NSDrawerOpenState) {
+        #pragma clang diagnostic pop
         id hierarchy=nil;
         NSImage* image=nil;
         NSInteger row=[myFilesTable selectedRow];
