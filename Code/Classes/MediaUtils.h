@@ -7,6 +7,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <AVFoundation/AVFoundation.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @interface MediaUtils : NSObject
 
@@ -21,6 +22,9 @@
 
 // Get all supported file types for open panel
 + (NSArray<NSString *> *)supportedFileTypes;
+
+// Get all supported file types as UTType objects (for NSOpenPanel)
++ (NSArray<UTType *> *)supportedFileTypesAsUTTypes;
 
 // Get supported image types
 + (NSArray<NSString *> *)supportedImageTypes;

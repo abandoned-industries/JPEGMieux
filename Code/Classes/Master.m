@@ -53,8 +53,6 @@ static NSColor* unarchive(NSData* data) {
     }
 
     // Try legacy NSUnarchiver for old preferences data (deprecated but needed for backward compatibility)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     @try {
         NSColor *color = [NSUnarchiver unarchiveObjectWithData:data];
         if (color && [color isKindOfClass:[NSColor class]]) return color;
@@ -62,7 +60,6 @@ static NSColor* unarchive(NSData* data) {
     @catch (NSException *exception) {
         // Fall through to return default
     }
-#pragma clang diagnostic pop
 
     // Return default black color if all unarchiving fails
     return [NSColor blackColor];
@@ -85,10 +82,6 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     Class class;
     class=[DefaultTransitionChooser classForShowTypeByTag:[myDisplayModeClass tagNumber]];
     myTransitionChooser=[class loadView];
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    [myTransitionDrawer setContentView:[myTransitionChooser view]];
-    #pragma clang diagnostic pop
 }
 
 - (id)init {
@@ -252,10 +245,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 	
 	[panel setDirectoryURL:[[NSURL alloc] initWithString:startingDirectory]];
 	// Use MediaUtils to support both images and videos
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-	[panel setAllowedFileTypes:[MediaUtils supportedFileTypes]];
-	#pragma clang diagnostic pop
+	[panel setAllowedContentTypes:[MediaUtils supportedFileTypesAsUTTypes]];
 	[panel beginSheetModalForWindow:[myFilesTable window] completionHandler:^(NSInteger returnCode)
 	{
 		[self openPanelDidEnd:panel returnCode:returnCode contextInfo:NULL];
@@ -526,19 +516,10 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     NSUserDefaults* prefs=[NSUserDefaults standardUserDefaults];
     NSDictionary* dict=[self getSavingDictionary];
     [prefs setObject:dict forKey:@"LastSlideshow"];
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    [prefs setBool:([myDrawer state]==NSDrawerOpenState || [myDrawer state]==NSDrawerOpeningState)
-            forKey:@"PreviewDrawerIsOpen"];
-    #pragma clang diagnostic pop
     [prefs synchronize];
 }
 
 - (void)displayImageLoop {
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    const BOOL drawerIsOpen=([myDrawer state]==NSDrawerOpenState || [myDrawer state]==NSDrawerOpeningState);
-    #pragma clang diagnostic pop
     [myWindow orderOut:self];
 	
     @try {
@@ -613,12 +594,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
         // Close file list panel when slideshow ends
         [[FileListPanel sharedPanel] orderOut:nil];
 
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        if (drawerIsOpen) [myDrawer close];
         [myWindow makeKeyAndOrderFront:self];
-        if (drawerIsOpen) [myDrawer open];
-        #pragma clang diagnostic pop
 }
 
 - (EventAction)handleEvent:(NSEvent*)event {
@@ -629,7 +605,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
         id param=NULL;
         SEL sel=[myPrefsManager selectorForKey:theChar withParam:&param];
         if (theChar=='.' && ([event modifierFlags] & NSEventModifierFlagCommand)) return eStop;
-        if (sel) return [self intPerformSelector:sel withObject:param];
+        if (sel && [self respondsToSelector:sel]) return [self intPerformSelector:sel withObject:param];
     }
     else if (type==NSEventTypeApplicationDefined) {
         if ([event subtype]==StopSlideshowEventType)

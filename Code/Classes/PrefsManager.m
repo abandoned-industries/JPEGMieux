@@ -1,4 +1,6 @@
 #import "PrefsManager.h"
+#import "Master.h"
+#import "MasterEventAction.h"
 
 static NSString* const KeyBindingsKey = @"KeyBindings";
 
@@ -105,7 +107,16 @@ static NSString* displayStringForKey(unichar key) {
         if (error || !uncoded) {
             [self revertToDefaults:self];
         } else {
-            myKeyBindings=[[NSMutableArray alloc] initWithArray:uncoded];
+            // Older versions saved bindings for actions that no longer exist
+            // (move to trash, rotate, flip, ...). Drop anything Master can't perform.
+            myKeyBindings=[[NSMutableArray alloc] initWithCapacity:[uncoded count]];
+            for (id item in uncoded) {
+                if (![item isKindOfClass:[KeyBinding class]]) continue;
+                KeyBinding* kb=item;
+                if (kb->action && [Master instancesRespondToSelector:kb->action]) {
+                    [myKeyBindings addObject:kb];
+                }
+            }
         }
     }
 }
@@ -128,8 +139,6 @@ static NSString* displayStringForKey(unichar key) {
         unsigned i;
         NSPopUpButtonCell* button;
         i=0;
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wundeclared-selector"
         selectors[i++]=SEL2STR(kbNextPic:);
         selectors[i++]=SEL2STR(kbPrevPic:);
         selectors[i++]=SEL2STR(kbEndShow:);
@@ -139,7 +148,6 @@ static NSString* displayStringForKey(unichar key) {
         selectors[i++]=SEL2STR(kbToggleComments:);
         selectors[i++]=SEL2STR(kbToggleFileList:);
         selectors[i++]=SEL2STR(kbCycleFilename:);
-        #pragma clang diagnostic pop
         mySelectorDisplayStrings=[[NSDictionary alloc] initWithObjects:displayers
                                                                forKeys:selectors
                                                                  count:sizeof selectors/sizeof *selectors];
@@ -147,6 +155,7 @@ static NSString* displayStringForKey(unichar key) {
         for (i=1; i < sizeof displayers / sizeof *displayers; i++) {
             [button addItemWithTitle:displayers[i]];
         }
+        [button setControlSize:NSControlSizeSmall];
         [button setFont:[NSFont systemFontOfSize:11]];
         [[myTable tableColumnWithIdentifier:@"action"] setDataCell:button];
         [myTable setTarget:self];
@@ -196,8 +205,6 @@ static NSString* displayStringForKey(unichar key) {
 
 - (IBAction)revertToDefaults:(id)sender {
     // Only include keybindings that actually work
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wundeclared-selector"
     myKeyBindings=[[NSMutableArray alloc] initWithObjects:
         [KeyBinding bindingWithKey:NSRightArrowFunctionKey action:@selector(kbNextPic:)],
         [KeyBinding bindingWithKey:NSDownArrowFunctionKey action:@selector(kbNextPic:)],
@@ -208,7 +215,6 @@ static NSString* displayStringForKey(unichar key) {
         [KeyBinding bindingWithKey:'\t' action:@selector(kbToggleFileList:)],
         [KeyBinding bindingWithKey:'p' action:@selector(kbCycleFilename:)],
         NULL];
-    #pragma clang diagnostic pop
     [myTable reloadData];
 }
 

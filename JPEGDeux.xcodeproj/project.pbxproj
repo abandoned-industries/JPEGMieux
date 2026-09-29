@@ -16,6 +16,7 @@
 		930E880917247A9C00291669 /* MediaUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 930E880B17247A9C00291669 /* MediaUtils.m */; };
 		930E880C17247A9C00291669 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 930E880A17247A9C00291669 /* AVKit.framework */; };
 		930E880D17247A9C00291669 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 930E880E17247A9C00291669 /* AVFoundation.framework */; };
+		A1B2C3D4E5F600010000AA01 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F600010000AA02 /* UniformTypeIdentifiers.framework */; };
 		930E880F17247A9C00291670 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 930E881017247A9C00291670 /* CoreMedia.framework */; };
 		93965903171A1EA100286CB9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 939658F9171A1EA100286CB9 /* InfoPlist.strings */; };
 		93965906171A1EA100286CB9 /* JPEGDeuxAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 93965900171A1EA100286CB9 /* JPEGDeuxAppDelegate.m */; };
@@ -80,6 +81,7 @@
 		930E880B17247A9C00291669 /* MediaUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaUtils.m; sourceTree = "<group>"; };
 		930E880F17247A9C00291669 /* MediaUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaUtils.h; sourceTree = "<group>"; };
 		930E880E17247A9C00291669 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		A1B2C3D4E5F600010000AA02 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 		930E881017247A9C00291670 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		930E803217247A9C00291667 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		930E803317247A9C00291667 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -183,6 +185,7 @@
 				930E880817247A9C00291668 /* ImageIO.framework in Frameworks */,
 				930E880C17247A9C00291669 /* AVKit.framework in Frameworks */,
 				930E880D17247A9C00291669 /* AVFoundation.framework in Frameworks */,
+				A1B2C3D4E5F600010000AA01 /* UniformTypeIdentifiers.framework in Frameworks */,
 				930E880F17247A9C00291670 /* CoreMedia.framework in Frameworks */,
 				9396590B171A356F00286CB9 /* Cocoa.framework in Frameworks */,
 				93E45F6314638D7D00C5C55B /* CoreFoundation.framework in Frameworks */,
@@ -247,6 +250,7 @@
 				930E880717247A9C00291668 /* ImageIO.framework */,
 				930E880A17247A9C00291669 /* AVKit.framework */,
 				930E880E17247A9C00291669 /* AVFoundation.framework */,
+				A1B2C3D4E5F600010000AA02 /* UniformTypeIdentifiers.framework */,
 				930E881017247A9C00291670 /* CoreMedia.framework */,
 				93E45F0F14638A3000C5C55B /* Other Frameworks */,
 			);

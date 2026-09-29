@@ -17,8 +17,6 @@
     NSEnumerator* enumer=[items objectEnumerator];
     id object;
     NSMutableArray* hier, * fileURLs;
-    [board declareTypes:@[HierarchyPBoardType, NSPasteboardTypeFileURL]
-                  owner:nil];
     hier = [NSMutableArray arrayWithCapacity:(NSUInteger) [view numberOfSelectedRows]];
     fileURLs = [NSMutableArray arrayWithCapacity:(NSUInteger) [view numberOfSelectedRows]];
     while ((object=[enumer nextObject])) {
@@ -28,7 +26,9 @@
             [fileURLs addObject:[NSURL fileURLWithPath:filename]];
         }
     }
+    [board clearContents];
     [board writeObjects:fileURLs];
+    [board addTypes:@[HierarchyPBoardType] owner:nil];
     [board setPropertyList:hier forType:HierarchyPBoardType];
     return YES;
 }
@@ -159,27 +159,6 @@
     [view reloadData];
 }
 
-- (void)outlineViewSelectionDidChange:(NSNotification*)notification {
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if ([myDrawer state]==NSDrawerOpenState) {
-        #pragma clang diagnostic pop
-        id hierarchy=nil;
-        NSImage* image=nil;
-        NSInteger row=[myFilesTable selectedRow];
-        if (row==-1) {
-            // No selection, no image to display
-        }
-        else {
-            hierarchy=[myFilesTable itemAtRow:row];
-            if (hierarchy!=nil && ![hierarchy isFolder])
-                image=[[NSImage alloc] initWithContentsOfFile:hierarchy];
-        }
-        [self redoPreviewImageName];
-        [myPreview setImage:image];
-    }
-}
-
 - (void)redoPreviewImageName {
     NSString* name=nil;
     NSInteger row;
@@ -195,10 +174,6 @@
     }
     [myPreview setImageName:name];
     [myPreview setNeedsDisplay:YES];
-}
-
-- (void)drawerDidOpen:(NSNotification*)note {
-    [self outlineViewSelectionDidChange:note];
 }
 
 @end

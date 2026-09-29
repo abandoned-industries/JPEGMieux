@@ -167,10 +167,10 @@
 }
 
 - (void)setImage:(NSImage*)image {
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-    [self performSelector:myTransition withObject:image];
-    #pragma clang diagnostic pop
+    // The transition methods all return void, so call the IMP with a void
+    // signature instead of performSelector: (which ARC cannot reason about).
+    void (*transition)(id, SEL, NSImage*) = (void (*)(id, SEL, NSImage*))[self methodForSelector:myTransition];
+    transition(self, myTransition, image);
 }
 
 - (void)setBackgroundColor:(NSColor*)color {

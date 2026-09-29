@@ -54,6 +54,18 @@
     return types;
 }
 
++ (NSArray<UTType *> *)supportedFileTypesAsUTTypes {
+    NSArray<NSString *> *identifiers = [self supportedFileTypes];
+    NSMutableArray<UTType *> *utTypes = [NSMutableArray arrayWithCapacity:[identifiers count]];
+    for (NSString *identifier in identifiers) {
+        UTType *type = [UTType typeWithIdentifier:identifier];
+        if (type) {
+            [utTypes addObject:type];
+        }
+    }
+    return utTypes;
+}
+
 + (BOOL)isImageFile:(NSString *)path {
     if (!path) return NO;
 
@@ -82,11 +94,13 @@
 
     if (uti) {
         // Exclude PDF UTI
-        if (UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypePDF)) {
+        UTType *type = [UTType typeWithIdentifier:uti];
+        if (type && [type conformsToType:UTTypePDF]) {
             return NO;
         }
         for (NSString *imageType in [self supportedImageTypes]) {
-            if (UTTypeConformsTo((__bridge CFStringRef)uti, (__bridge CFStringRef)imageType)) {
+            UTType *imageUTType = [UTType typeWithIdentifier:imageType];
+            if (type && imageUTType && [type conformsToType:imageUTType]) {
                 return YES;
             }
         }
@@ -116,8 +130,9 @@
     [url getResourceValue:&uti forKey:NSURLTypeIdentifierKey error:nil];
 
     if (uti) {
-        if (UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypeMovie) ||
-            UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypeVideo)) {
+        UTType *type = [UTType typeWithIdentifier:uti];
+        if (type && ([type conformsToType:UTTypeMovie] ||
+                     [type conformsToType:UTTypeVideo])) {
             return YES;
         }
     }
