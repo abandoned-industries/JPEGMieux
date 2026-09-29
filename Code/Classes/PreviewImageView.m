@@ -12,70 +12,73 @@
 
 - (void)setColor:(NSColor*)color {
     [super setColor:color];
-    if ([self canDraw]) {
-        NSRect rect=[self bounds];
-        NSRect imageRect={NSMakePoint(0, 0), [myImage size]};
+    // Trigger a redraw to update the background color
+    [self setNeedsDisplay:YES];
+}
 
-        //let's try to change the color without having to rerender the image
-        [self lockFocus];
-        [myBackgroundColor set];
-        if (! myImage) {
-            NSRectFill(rect);
-        }
-        else {
-            switch (myScaling) {
-                case ScaleDownToFit:
-                    if (!(NSHeight(imageRect) < NSHeight(rect) || NSWidth(imageRect) < NSWidth(rect)))
-                        goto LabelScaleNone;
-                    //note the fall through
-                case ScaleToFit:
-                    break;
+- (void)drawRect:(NSRect)rect {
+    // Call parent to draw the image
+    [super drawRect:rect];
 
-                    LabelScaleNone:
-                case ScaleNone: {
-                    float xSpace=(NSWidth(rect) - NSWidth(imageRect))/2.0;
-                    float ySpace=(NSHeight(rect) - NSHeight(imageRect))/2.0;
-                    if (xSpace < 0 && ySpace >= 0) { //space on bottom and top, not sides
-                        NSRectFill(NSMakeRect(0, 0, NSWidth(rect), ySpace));
-                        NSRectFill(NSMakeRect(0, NSHeight(rect)-ySpace, NSWidth(rect), ySpace));
-                    }
-                    else if (xSpace >= 0 && ySpace < 0) { //space on sides, not bottom and top
-                        NSRectFill(NSMakeRect(0, 0, xSpace, NSHeight(rect)));
-                        NSRectFill(NSMakeRect(NSWidth(rect)-xSpace, 0, xSpace, NSHeight(rect)));
-                    }
-                    else if (xSpace > 0 && ySpace > 0) { //image is too small all around
-                        NSRectFill(NSMakeRect(0, 0, NSWidth(rect), ySpace+1)); //bottom, we add 1 because of ugly round off otherwise
-                        NSRectFill(NSMakeRect(0, NSHeight(rect)-ySpace, NSWidth(rect), ySpace)); //top
-                        NSRectFill(NSMakeRect(0, ySpace, xSpace+1, .5f+NSHeight(rect)-2.0f*ySpace)); //left
-                        NSRectFill(NSMakeRect(NSWidth(rect)-xSpace, ySpace, xSpace, .5f+NSHeight(rect)-2.0f*ySpace)); //right
-                    }
-                    break;
+    // Draw background areas based on scaling mode
+    NSRect bounds = [self bounds];
+    NSRect imageRect = {NSMakePoint(0, 0), [myImage size]};
+
+    [myBackgroundColor set];
+    if (!myImage) {
+        NSRectFill(bounds);
+    }
+    else {
+        switch (myScaling) {
+            case ScaleDownToFit:
+                if (!(NSHeight(imageRect) < NSHeight(bounds) || NSWidth(imageRect) < NSWidth(bounds)))
+                    goto LabelScaleNone;
+                //note the fall through
+            case ScaleToFit:
+                break;
+
+                LabelScaleNone:
+            case ScaleNone: {
+                float xSpace=(NSWidth(bounds) - NSWidth(imageRect))/2.0;
+                float ySpace=(NSHeight(bounds) - NSHeight(imageRect))/2.0;
+                if (xSpace < 0 && ySpace >= 0) { //space on bottom and top, not sides
+                    NSRectFill(NSMakeRect(0, 0, NSWidth(bounds), ySpace));
+                    NSRectFill(NSMakeRect(0, NSHeight(bounds)-ySpace, NSWidth(bounds), ySpace));
                 }
-                case ScaleDownProportionally:
-                    if (NSHeight(imageRect) < NSHeight(rect) && NSWidth(imageRect) < NSWidth(rect)) goto LabelScaleNone;
-                    //note the fall through
-                case ScaleProportionally:
-                    if (NSHeight(imageRect)*NSWidth(rect) > NSHeight(rect)*NSWidth(imageRect)) {
-                        //image is tall
-                        float scalingFactor=NSHeight(rect)/NSHeight(imageRect);
-                        NSRect drawingRect=NSInsetRect(rect, (NSWidth(rect)-NSWidth(imageRect)*scalingFactor)/2.0, 0);
-                        NSRectFill(NSMakeRect(0, 0, NSMinX(drawingRect), NSHeight(rect)));
-                        NSRectFill(NSMakeRect(NSMaxX(drawingRect), 0, NSMaxX(rect)-NSMaxX(drawingRect), NSHeight(rect)));
-                    }
-                    else {
-                        //image is wide
-                        NSRect drawingRect;
-                        float scalingFactor=NSWidth(rect)/NSWidth(imageRect);
-                        drawingRect=NSInsetRect(rect, 0, (NSHeight(rect)-NSHeight(imageRect)*scalingFactor)/2.0);
-                        NSRectFill(NSMakeRect(0, NSMaxY(drawingRect), NSWidth(rect), NSMaxY(rect)-NSMaxY(drawingRect)));
-                        NSRectFill(NSMakeRect(0, 0, NSWidth(rect), NSMinY(drawingRect)));
-                    }
-                    break;
-                default: ; //this ought to shut gcc up
+                else if (xSpace >= 0 && ySpace < 0) { //space on sides, not bottom and top
+                    NSRectFill(NSMakeRect(0, 0, xSpace, NSHeight(bounds)));
+                    NSRectFill(NSMakeRect(NSWidth(bounds)-xSpace, 0, xSpace, NSHeight(bounds)));
+                }
+                else if (xSpace > 0 && ySpace > 0) { //image is too small all around
+                    NSRectFill(NSMakeRect(0, 0, NSWidth(bounds), ySpace+1)); //bottom, we add 1 because of ugly round off otherwise
+                    NSRectFill(NSMakeRect(0, NSHeight(bounds)-ySpace, NSWidth(bounds), ySpace)); //top
+                    NSRectFill(NSMakeRect(0, ySpace, xSpace+1, .5f+NSHeight(bounds)-2.0f*ySpace)); //left
+                    NSRectFill(NSMakeRect(NSWidth(bounds)-xSpace, ySpace, xSpace, .5f+NSHeight(bounds)-2.0f*ySpace)); //right
+                }
+                break;
             }
+            case ScaleDownProportionally:
+                if (NSHeight(imageRect) < NSHeight(bounds) && NSWidth(imageRect) < NSWidth(bounds)) goto LabelScaleNone;
+                //note the fall through
+            case ScaleProportionally:
+                if (NSHeight(imageRect)*NSWidth(bounds) > NSHeight(bounds)*NSWidth(imageRect)) {
+                    //image is tall
+                    float scalingFactor=NSHeight(bounds)/NSHeight(imageRect);
+                    NSRect drawingRect=NSInsetRect(bounds, (NSWidth(bounds)-NSWidth(imageRect)*scalingFactor)/2.0, 0);
+                    NSRectFill(NSMakeRect(0, 0, NSMinX(drawingRect), NSHeight(bounds)));
+                    NSRectFill(NSMakeRect(NSMaxX(drawingRect), 0, NSMaxX(bounds)-NSMaxX(drawingRect), NSHeight(bounds)));
+                }
+                else {
+                    //image is wide
+                    NSRect drawingRect;
+                    float scalingFactor=NSWidth(bounds)/NSWidth(imageRect);
+                    drawingRect=NSInsetRect(bounds, 0, (NSHeight(bounds)-NSHeight(imageRect)*scalingFactor)/2.0);
+                    NSRectFill(NSMakeRect(0, NSMaxY(drawingRect), NSWidth(bounds), NSMaxY(bounds)-NSMaxY(drawingRect)));
+                    NSRectFill(NSMakeRect(0, 0, NSWidth(bounds), NSMinY(drawingRect)));
+                }
+                break;
+            default: ; //this ought to shut gcc up
         }
-        [self unlockFocus];
-        [[self window] flushWindow];
     }
 }
 

@@ -34,44 +34,43 @@ static BOOL sSkipICloudFiles = YES;
 // Create a placeholder image for files not yet downloaded from iCloud
 + (NSImage *)iCloudPlaceholderImageWithFilename:(NSString *)filename {
     NSSize size = NSMakeSize(800, 600);
-    NSImage *image = [[NSImage alloc] initWithSize:size];
 
-    [image lockFocus];
+    NSImage *image = [NSImage imageWithSize:size flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
+        // Dark background
+        [[NSColor colorWithWhite:0.15 alpha:1.0] set];
+        NSRectFill(NSMakeRect(0, 0, size.width, size.height));
 
-    // Dark background
-    [[NSColor colorWithWhite:0.15 alpha:1.0] set];
-    NSRectFill(NSMakeRect(0, 0, size.width, size.height));
+        // Draw iCloud icon (simple cloud shape using text)
+        NSMutableParagraphStyle *centerStyle = [[NSMutableParagraphStyle alloc] init];
+        [centerStyle setAlignment:NSTextAlignmentCenter];
 
-    // Draw iCloud icon (simple cloud shape using text)
-    NSMutableParagraphStyle *centerStyle = [[NSMutableParagraphStyle alloc] init];
-    [centerStyle setAlignment:NSTextAlignmentCenter];
+        // Cloud emoji as icon
+        NSDictionary *iconAttrs = @{
+            NSFontAttributeName: [NSFont systemFontOfSize:72],
+            NSForegroundColorAttributeName: [NSColor colorWithWhite:0.5 alpha:1.0],
+            NSParagraphStyleAttributeName: centerStyle
+        };
+        [@"\u2601" drawInRect:NSMakeRect(0, size.height/2 + 20, size.width, 100) withAttributes:iconAttrs];
 
-    // Cloud emoji as icon
-    NSDictionary *iconAttrs = @{
-        NSFontAttributeName: [NSFont systemFontOfSize:72],
-        NSForegroundColorAttributeName: [NSColor colorWithWhite:0.5 alpha:1.0],
-        NSParagraphStyleAttributeName: centerStyle
-    };
-    [@"\u2601" drawInRect:NSMakeRect(0, size.height/2 + 20, size.width, 100) withAttributes:iconAttrs];
+        // "Not Downloaded" text
+        NSDictionary *titleAttrs = @{
+            NSFontAttributeName: [NSFont systemFontOfSize:24 weight:NSFontWeightMedium],
+            NSForegroundColorAttributeName: [NSColor colorWithWhite:0.7 alpha:1.0],
+            NSParagraphStyleAttributeName: centerStyle
+        };
+        [@"iCloud File Not Downloaded" drawInRect:NSMakeRect(0, size.height/2 - 30, size.width, 40) withAttributes:titleAttrs];
 
-    // "Not Downloaded" text
-    NSDictionary *titleAttrs = @{
-        NSFontAttributeName: [NSFont systemFontOfSize:24 weight:NSFontWeightMedium],
-        NSForegroundColorAttributeName: [NSColor colorWithWhite:0.7 alpha:1.0],
-        NSParagraphStyleAttributeName: centerStyle
-    };
-    [@"iCloud File Not Downloaded" drawInRect:NSMakeRect(0, size.height/2 - 30, size.width, 40) withAttributes:titleAttrs];
+        // Filename
+        NSDictionary *filenameAttrs = @{
+            NSFontAttributeName: [NSFont systemFontOfSize:14],
+            NSForegroundColorAttributeName: [NSColor colorWithWhite:0.5 alpha:1.0],
+            NSParagraphStyleAttributeName: centerStyle
+        };
+        NSString *displayName = [filename lastPathComponent] ?: @"Unknown";
+        [displayName drawInRect:NSMakeRect(20, size.height/2 - 70, size.width - 40, 30) withAttributes:filenameAttrs];
 
-    // Filename
-    NSDictionary *filenameAttrs = @{
-        NSFontAttributeName: [NSFont systemFontOfSize:14],
-        NSForegroundColorAttributeName: [NSColor colorWithWhite:0.5 alpha:1.0],
-        NSParagraphStyleAttributeName: centerStyle
-    };
-    NSString *displayName = [filename lastPathComponent] ?: @"Unknown";
-    [displayName drawInRect:NSMakeRect(20, size.height/2 - 70, size.width - 40, 30) withAttributes:filenameAttrs];
-
-    [image unlockFocus];
+        return YES;
+    }];
 
     return image;
 }
