@@ -13,7 +13,7 @@
 - (void)fileListPanel:(id)panel didSelectFilePath:(NSString *)path;
 @end
 
-@interface FileListPanel : NSPanel <NSTableViewDataSource, NSTableViewDelegate>
+@interface FileListPanel : NSPanel <NSOutlineViewDataSource, NSOutlineViewDelegate>
 
 @property (nonatomic, weak) id<FileListPanelDelegate> fileListDelegate;
 @property (nonatomic, strong, readonly) NSArray *displayFiles;  // Validated files for display

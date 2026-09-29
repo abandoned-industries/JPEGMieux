@@ -13,17 +13,29 @@ static FileListPanel *sharedInstance = nil;
 // Cache validation results to avoid re-checking
 static NSMutableDictionary *videoValidationCache = nil;
 
+// Model for outline view: represents either a folder or a file
+@interface FileListItem : NSObject
+@property (nonatomic, strong) NSString *displayName;  // Relative folder path or file name
+@property (nonatomic, strong) NSString *fullPath;     // Full path (for files)
+@property (nonatomic, assign) BOOL isFolder;
+@property (nonatomic, strong) NSMutableArray *children;  // Files in folder (if folder)
+@property (nonatomic, assign) NSInteger fileCount;    // Number of files in folder
+@end
+
+@implementation FileListItem
+@end
+
 @interface FileListPanel ()
-@property (nonatomic, strong) NSTableView *tableView;
+@property (nonatomic, strong) NSOutlineView *outlineView;
 @property (nonatomic, strong) NSScrollView *scrollView;
-@property (nonatomic, strong) NSButton *closeButton;
-@property (nonatomic, strong) NSTextField *titleLabel;
 @property (nonatomic, strong) NSVisualEffectView *backgroundView;
 @property (nonatomic, strong) NSButton *moviesOnlyCheckbox;
 @property (nonatomic, strong) NSArray *allFiles;  // All files before filtering
 @property (nonatomic, strong) NSArray *displayFiles;  // Filtered files for display
 @property (nonatomic, strong) NSArray *originalIndexMap;  // Maps display index -> original index
-@property (nonatomic, assign) NSInteger displayCurrentIndex;  // Current index in display array
+@property (nonatomic, strong) NSMutableArray *outlineItems;  // Root items for outline view
+@property (nonatomic, strong) NSString *currentFilePath;  // Current file path for highlighting
+@property (nonatomic, strong) NSString *commonRoot;  // Common root directory
 @property (nonatomic, assign) BOOL showMoviesOnly;
 @end
 
@@ -83,7 +95,7 @@ static NSMutableDictionary *videoValidationCache = nil;
     _backgroundView = [[NSVisualEffectView alloc] initWithFrame:contentView.bounds];
     _backgroundView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     _backgroundView.blendingMode = NSVisualEffectBlendingModeBehindWindow;
-    _backgroundView.material = NSVisualEffectMaterialDark;
+    _backgroundView.material = NSVisualEffectMaterialMenu;
     _backgroundView.state = NSVisualEffectStateActive;
     [contentView addSubview:_backgroundView];
 
@@ -98,7 +110,7 @@ static NSMutableDictionary *videoValidationCache = nil;
     _moviesOnlyCheckbox.attributedTitle = attrTitle;
     [_backgroundView addSubview:_moviesOnlyCheckbox];
 
-    // Create scroll view for table (above checkbox)
+    // Create scroll view for outline view (above checkbox)
     CGFloat checkboxHeight = 30;
     NSRect scrollFrame = NSMakeRect(10, 10 + checkboxHeight, contentView.bounds.size.width - 20, contentView.bounds.size.height - 20 - checkboxHeight);
     _scrollView = [[NSScrollView alloc] initWithFrame:scrollFrame];
@@ -109,18 +121,18 @@ static NSMutableDictionary *videoValidationCache = nil;
     _scrollView.backgroundColor = [NSColor clearColor];
     _scrollView.drawsBackground = NO;
 
-    // Create table view
-    _tableView = [[NSTableView alloc] initWithFrame:_scrollView.bounds];
-    _tableView.backgroundColor = [NSColor clearColor];
-    _tableView.headerView = nil; // No header
-    _tableView.rowHeight = 24;
-    _tableView.intercellSpacing = NSMakeSize(0, 2);
-    _tableView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleRegular;
-    _tableView.delegate = self;
-    _tableView.dataSource = self;
-    _tableView.allowsMultipleSelection = NO;
-    _tableView.doubleAction = @selector(tableDoubleClicked:);
-    _tableView.target = self;
+    // Create outline view
+    _outlineView = [[NSOutlineView alloc] initWithFrame:_scrollView.bounds];
+    _outlineView.backgroundColor = [NSColor clearColor];
+    _outlineView.headerView = nil; // No header
+    _outlineView.rowHeight = 24;
+    _outlineView.intercellSpacing = NSMakeSize(0, 2);
+    _outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleRegular;
+    _outlineView.delegate = self;
+    _outlineView.dataSource = self;
+    _outlineView.allowsMultipleSelection = NO;
+    _outlineView.doubleAction = @selector(outlineDoubleClicked:);
+    _outlineView.target = self;
 
     // File name column
     NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:@"filename"];
@@ -135,10 +147,12 @@ static NSMutableDictionary *videoValidationCache = nil;
     cell.lineBreakMode = NSLineBreakByTruncatingMiddle;
     column.dataCell = cell;
 
-    [_tableView addTableColumn:column];
+    [_outlineView addTableColumn:column];
 
-    _scrollView.documentView = _tableView;
+    _scrollView.documentView = _outlineView;
     [_backgroundView addSubview:_scrollView];
+
+    _outlineItems = [[NSMutableArray alloc] init];
 }
 
 #pragma mark - File Validation
@@ -166,10 +180,99 @@ static NSMutableDictionary *videoValidationCache = nil;
     return NO;
 }
 
+- (NSString *)commonRootOfPaths:(NSArray *)paths {
+    if ([paths count] == 0) return nil;
+    if ([paths count] == 1) return [[paths[0] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent];
+
+    NSString *first = [paths[0] stringByDeletingLastPathComponent];
+    NSString *current = first;
+
+    for (NSInteger i = 1; i < (NSInteger)[paths count]; i++) {
+        NSString *folder = [paths[i] stringByDeletingLastPathComponent];
+
+        // Find common prefix
+        NSArray *currentParts = [current pathComponents];
+        NSArray *folderParts = [folder pathComponents];
+
+        NSMutableArray *commonParts = [[NSMutableArray alloc] init];
+        NSInteger minParts = MIN([currentParts count], [folderParts count]);
+
+        for (NSInteger j = 0; j < minParts; j++) {
+            if ([currentParts[j] isEqual:folderParts[j]]) {
+                [commonParts addObject:currentParts[j]];
+            } else {
+                break;
+            }
+        }
+
+        if ([commonParts count] == 0) {
+            return nil;  // No common root
+        }
+
+        current = [NSString pathWithComponents:commonParts];
+    }
+
+    return current;
+}
+
+- (void)buildOutlineViewStructure:(NSArray *)files {
+    [_outlineItems removeAllObjects];
+
+    // Group files by folder
+    NSMutableDictionary *folderMap = [[NSMutableDictionary alloc] init];  // folder path -> FileListItem
+    NSMutableArray *folderOrder = [[NSMutableArray alloc] init];  // Keep insertion order
+
+    for (NSString *filePath in files) {
+        NSString *folder = [filePath stringByDeletingLastPathComponent];
+
+        if (!folderMap[folder]) {
+            FileListItem *folderItem = [[FileListItem alloc] init];
+            folderItem.fullPath = folder;
+            folderItem.isFolder = YES;
+            folderItem.children = [[NSMutableArray alloc] init];
+
+            // Compute relative folder path
+            if (_commonRoot && [folder hasPrefix:_commonRoot]) {
+                NSString *relative = [folder substringFromIndex:[_commonRoot length]];
+                if ([relative hasPrefix:@"/"]) {
+                    relative = [relative substringFromIndex:1];
+                }
+                folderItem.displayName = [relative length] > 0 ? relative : [folder lastPathComponent];
+            } else {
+                folderItem.displayName = [folder lastPathComponent];
+            }
+
+            folderMap[folder] = folderItem;
+            [folderOrder addObject:folder];
+        }
+
+        // Add file to folder
+        FileListItem *fileItem = [[FileListItem alloc] init];
+        fileItem.fullPath = filePath;
+        fileItem.isFolder = NO;
+        fileItem.displayName = [filePath lastPathComponent];
+
+        FileListItem *folderItem = folderMap[folder];
+        [folderItem.children addObject:fileItem];
+    }
+
+    // Sort folders by path using localizedStandardCompare for stability
+    [folderOrder sortUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        return [obj1 localizedStandardCompare:obj2];
+    }];
+
+    // Add sorted folders to outline items
+    for (NSString *folder in folderOrder) {
+        FileListItem *folderItem = folderMap[folder];
+        folderItem.fileCount = [folderItem.children count];
+        [_outlineItems addObject:folderItem];
+    }
+}
+
 - (void)filterFilesAndBuildMapping:(NSArray *)files currentIndex:(NSInteger)currentIndex {
     NSMutableArray *filtered = [[NSMutableArray alloc] init];
     NSMutableArray *indexMap = [[NSMutableArray alloc] init];
-    NSInteger newCurrentIndex = -1;
+    NSString *newCurrentPath = nil;
 
     for (NSInteger i = 0; i < (NSInteger)[files count]; i++) {
         NSString *path = files[i];
@@ -186,7 +289,7 @@ static NSMutableDictionary *videoValidationCache = nil;
 
         if (passesFilter) {
             if (i == currentIndex) {
-                newCurrentIndex = [filtered count];
+                newCurrentPath = path;
             }
             [filtered addObject:path];
             [indexMap addObject:@(i)];
@@ -195,13 +298,17 @@ static NSMutableDictionary *videoValidationCache = nil;
 
     _displayFiles = [filtered copy];
     _originalIndexMap = [indexMap copy];
-    _displayCurrentIndex = newCurrentIndex;
+    _currentFilePath = newCurrentPath;
+
+    // Compute common root and build outline structure
+    _commonRoot = [self commonRootOfPaths:_displayFiles];
+    [self buildOutlineViewStructure:_displayFiles];
 }
 
 - (void)moviesOnlyChanged:(id)sender {
     _showMoviesOnly = ([_moviesOnlyCheckbox state] == NSControlStateValueOn);
     [self filterFilesAndBuildMapping:_allFiles currentIndex:_currentIndex];
-    [_tableView reloadData];
+    [_outlineView reloadData];
     [self highlightCurrentFile];
 }
 
@@ -211,14 +318,34 @@ static NSMutableDictionary *videoValidationCache = nil;
     _allFiles = [files copy];  // Store for re-filtering when checkbox changes
     _currentIndex = index;
     [self filterFilesAndBuildMapping:files currentIndex:index];
-    [_tableView reloadData];
+    [_outlineView reloadData];
     [self highlightCurrentFile];
 }
 
 - (void)highlightCurrentFile {
-    if (_displayCurrentIndex >= 0 && _displayCurrentIndex < (NSInteger)[_displayFiles count]) {
-        [_tableView selectRowIndexes:[NSIndexSet indexSetWithIndex:_displayCurrentIndex] byExtendingSelection:NO];
-        [_tableView scrollRowToVisible:_displayCurrentIndex];
+    if (!_currentFilePath) return;
+
+    // Collapse all folders first
+    for (FileListItem *folderItem in _outlineItems) {
+        [_outlineView collapseItem:folderItem];
+    }
+
+    // Find and expand the folder containing current file
+    for (FileListItem *folderItem in _outlineItems) {
+        for (FileListItem *fileItem in folderItem.children) {
+            if ([fileItem.fullPath isEqual:_currentFilePath]) {
+                // Expand this folder
+                [_outlineView expandItem:folderItem];
+
+                // Select and scroll to the file
+                NSInteger rowIndex = [_outlineView rowForItem:fileItem];
+                if (rowIndex >= 0) {
+                    [_outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:rowIndex] byExtendingSelection:NO];
+                    [_outlineView scrollRowToVisible:rowIndex];
+                }
+                return;
+            }
+        }
     }
 }
 
@@ -236,65 +363,107 @@ static NSMutableDictionary *videoValidationCache = nil;
     [_moviesOnlyCheckbox setState:moviesOnly ? NSControlStateValueOn : NSControlStateValueOff];
     if (_allFiles) {
         [self filterFilesAndBuildMapping:_allFiles currentIndex:_currentIndex];
-        [_tableView reloadData];
+        [_outlineView reloadData];
         [self highlightCurrentFile];
     }
 }
 
 - (void)setCurrentIndex:(NSInteger)currentIndex {
     _currentIndex = currentIndex;
-    // Update display current index by finding the original index in the map
-    _displayCurrentIndex = -1;
-    for (NSInteger i = 0; i < (NSInteger)[_originalIndexMap count]; i++) {
-        if ([_originalIndexMap[i] integerValue] == currentIndex) {
-            _displayCurrentIndex = i;
-            break;
+    // Find the corresponding file path
+    if (currentIndex >= 0 && currentIndex < (NSInteger)[_originalIndexMap count]) {
+        NSInteger originalIndex = [_originalIndexMap[currentIndex] integerValue];
+        if (originalIndex >= 0 && originalIndex < (NSInteger)[_allFiles count]) {
+            _currentFilePath = _allFiles[originalIndex];
         }
     }
-    [_tableView reloadData];
+    [_outlineView reloadData];
     [self highlightCurrentFile];
 }
 
 #pragma mark - Actions
 
-- (void)tableDoubleClicked:(id)sender {
-    NSInteger row = [_tableView clickedRow];
-    if (row >= 0 && row < (NSInteger)[_displayFiles count]) {
-        NSString *path = _displayFiles[row];
-        if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
-            [_fileListDelegate fileListPanel:self didSelectFilePath:path];
+- (void)outlineDoubleClicked:(id)sender {
+    NSInteger row = [_outlineView clickedRow];
+    if (row >= 0) {
+        id item = [_outlineView itemAtRow:row];
+        if ([item isKindOfClass:[FileListItem class]]) {
+            FileListItem *listItem = (FileListItem *)item;
+            if (!listItem.isFolder) {
+                // File was clicked
+                if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
+                    [_fileListDelegate fileListPanel:self didSelectFilePath:listItem.fullPath];
+                }
+            }
         }
     }
 }
 
-#pragma mark - NSTableViewDataSource
+#pragma mark - NSOutlineViewDataSource
 
-- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    return [_displayFiles count];
-}
-
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    if (row < (NSInteger)[_displayFiles count]) {
-        NSString *path = _displayFiles[row];
-        return [path lastPathComponent];
+- (NSInteger)outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item {
+    if (item == nil) {
+        // Root level - number of folders
+        return [_outlineItems count];
     }
-    return @"";
+
+    if ([item isKindOfClass:[FileListItem class]]) {
+        FileListItem *listItem = (FileListItem *)item;
+        if (listItem.isFolder) {
+            return [listItem.children count];
+        }
+    }
+
+    return 0;
 }
 
-#pragma mark - NSTableViewDelegate
+- (id)outlineView:(NSOutlineView *)outlineView child:(NSInteger)index ofItem:(id)item {
+    if (item == nil) {
+        // Root level
+        if (index >= 0 && index < (NSInteger)[_outlineItems count]) {
+            return _outlineItems[index];
+        }
+        return nil;
+    }
 
-- (void)tableViewSelectionDidChange:(NSNotification *)notification {
-    NSInteger row = [_tableView selectedRow];
-    if (row >= 0 && row < (NSInteger)[_displayFiles count] && row != _displayCurrentIndex) {
-        NSString *path = _displayFiles[row];
-        if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
-            [_fileListDelegate fileListPanel:self didSelectFilePath:path];
+    if ([item isKindOfClass:[FileListItem class]]) {
+        FileListItem *listItem = (FileListItem *)item;
+        if (listItem.isFolder && index >= 0 && index < (NSInteger)[listItem.children count]) {
+            return listItem.children[index];
+        }
+    }
+
+    return nil;
+}
+
+- (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item {
+    if ([item isKindOfClass:[FileListItem class]]) {
+        FileListItem *listItem = (FileListItem *)item;
+        return listItem.isFolder;
+    }
+    return NO;
+}
+
+#pragma mark - NSOutlineViewDelegate
+
+- (void)outlineViewSelectionDidChange:(NSNotification *)notification {
+    NSInteger row = [_outlineView selectedRow];
+    if (row >= 0) {
+        id item = [_outlineView itemAtRow:row];
+        if ([item isKindOfClass:[FileListItem class]]) {
+            FileListItem *listItem = (FileListItem *)item;
+            if (!listItem.isFolder) {
+                // File was selected
+                if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
+                    [_fileListDelegate fileListPanel:self didSelectFilePath:listItem.fullPath];
+                }
+            }
         }
     }
 }
 
-- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    NSTextField *cell = [tableView makeViewWithIdentifier:@"FileCell" owner:self];
+- (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
+    NSTextField *cell = [outlineView makeViewWithIdentifier:@"FileCell" owner:self];
 
     if (!cell) {
         cell = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, tableColumn.width, 24)];
@@ -308,24 +477,33 @@ static NSMutableDictionary *videoValidationCache = nil;
         cell.lineBreakMode = NSLineBreakByTruncatingMiddle;
     }
 
-    if (row < (NSInteger)[_displayFiles count]) {
-        NSString *path = _displayFiles[row];
-        cell.stringValue = [path lastPathComponent];
+    if ([item isKindOfClass:[FileListItem class]]) {
+        FileListItem *listItem = (FileListItem *)item;
 
-        // Highlight current file with different color
-        if (row == _displayCurrentIndex) {
-            cell.textColor = [NSColor systemYellowColor];
+        if (listItem.isFolder) {
+            // Folder row - bold and show file count
+            cell.stringValue = [NSString stringWithFormat:@"%@ — %ld", listItem.displayName, (long)listItem.fileCount];
+            cell.textColor = [NSColor systemGrayColor];
             cell.font = [NSFont boldSystemFontOfSize:13];
         } else {
-            cell.textColor = [NSColor whiteColor];
-            cell.font = [NSFont systemFontOfSize:13];
+            // File row
+            cell.stringValue = listItem.displayName;
+
+            // Highlight current file with different color
+            if ([listItem.fullPath isEqual:_currentFilePath]) {
+                cell.textColor = [NSColor systemYellowColor];
+                cell.font = [NSFont boldSystemFontOfSize:13];
+            } else {
+                cell.textColor = [NSColor whiteColor];
+                cell.font = [NSFont systemFontOfSize:13];
+            }
         }
     }
 
     return cell;
 }
 
-- (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
+- (CGFloat)outlineView:(NSOutlineView *)outlineView heightOfRowByItem:(id)item {
     return 24;
 }
 
@@ -336,17 +514,43 @@ static NSMutableDictionary *videoValidationCache = nil;
 
     // Allow up/down arrow keys to navigate
     if (key == NSUpArrowFunctionKey || key == NSDownArrowFunctionKey) {
-        [_tableView keyDown:event];
+        [_outlineView keyDown:event];
         return;
     }
 
-    // Enter/Return selects the current row
+    // Left/Right arrow keys for collapse/expand
+    if (key == NSLeftArrowFunctionKey || key == NSRightArrowFunctionKey) {
+        NSInteger row = [_outlineView selectedRow];
+        if (row >= 0) {
+            id item = [_outlineView itemAtRow:row];
+            if ([item isKindOfClass:[FileListItem class]]) {
+                FileListItem *listItem = (FileListItem *)item;
+                if (listItem.isFolder) {
+                    if (key == NSLeftArrowFunctionKey) {
+                        [_outlineView collapseItem:item];
+                    } else {
+                        [_outlineView expandItem:item];
+                    }
+                    return;
+                }
+            }
+        }
+        [_outlineView keyDown:event];
+        return;
+    }
+
+    // Enter/Return selects the current row (if it's a file)
     if (key == '\r' || key == 0x03) {
-        NSInteger row = [_tableView selectedRow];
-        if (row >= 0 && row < (NSInteger)[_displayFiles count]) {
-            NSString *path = _displayFiles[row];
-            if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
-                [_fileListDelegate fileListPanel:self didSelectFilePath:path];
+        NSInteger row = [_outlineView selectedRow];
+        if (row >= 0) {
+            id item = [_outlineView itemAtRow:row];
+            if ([item isKindOfClass:[FileListItem class]]) {
+                FileListItem *listItem = (FileListItem *)item;
+                if (!listItem.isFolder) {
+                    if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
+                        [_fileListDelegate fileListPanel:self didSelectFilePath:listItem.fullPath];
+                    }
+                }
             }
         }
         return;
