@@ -73,30 +73,6 @@ static NSApplication* application;
 static ModernWindowController* modernWindowController;
 static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 
-static NSMutableArray* aliasIfNecessary(NSArray* array) {
-    NSUserDefaults* prefs=[NSUserDefaults standardUserDefaults];
-    if (! [prefs boolForKey:@"DontAliasDictionaries"]) {
-        NSUInteger i, max=[array count];
-        NSMutableArray* a=[NSMutableArray arrayWithCapacity:max];
-        for (i=0; i<max; i++) {
-            [a addObject:[array[i] alias]];
-        }
-        return a;
-    }
-    else return [NSMutableArray arrayWithArray:array];
-}
-
-static NSMutableArray* unaliasIfNecessary(NSArray* array) {
-    if ([array count] && [array isAliased]) {
-        NSUInteger i, max=[array count];
-        NSMutableArray* a=[NSMutableArray arrayWithCapacity:max];
-        for (i=0; i<max; i++) {
-            [a addObject:[array[i] unalias]];
-        }
-        return a;
-    }
-    else return [NSMutableArray arrayWithArray:array];
-}
 
 
 @implementation Master
@@ -145,7 +121,7 @@ static NSMutableArray* unaliasIfNecessary(NSArray* array) {
     [myShouldRecursivelyScanSubdirectoriesButton setIntValue:myShouldRecursivelyScanSubdirectories];
     [myFilesTable reloadData];
     [myPreview setImageScaling:myScaling];
-    [myDisplayCommentButton setIntValue:myCommentDisplay];
+    [myDisplayCommentButton setIntValue:(int)myCommentDisplay];
     [myShowFileListButton setIntValue:myShouldShowFileList];
     [myMoviesOnlyButton setIntValue:myMoviesOnly];
     [mySkipICloudFilesButton setIntValue:myShouldSkipICloudFiles];
@@ -160,15 +136,15 @@ static NSMutableArray* unaliasIfNecessary(NSArray* array) {
     [dict setFloat:(float) myTimeInterval forKey:@"TimeInterval"];
     [dict setInt:[myDisplayModeClass tagNumber] forKey:@"DisplayMode"];
     [dict setBool:myShouldAutoAdvance forKey:@"ShouldAutoAdvance"];
-    [dict setInt:myScaling forKey:@"ScalingMode"];
+    [dict setInt:(int)myScaling forKey:@"ScalingMode"];
     [dict setBool:myShouldOnlyScaleDown forKey:@"ShouldOnlyScaleDown"];
-    [dict setInt:myFileNameDisplay forKey:@"FileNameDisplayType"];
+    [dict setInt:(int)myFileNameDisplay forKey:@"FileNameDisplayType"];
     [dict setBool:myShouldRecursivelyScanSubdirectories forKey:@"ShouldRecursivelyScanSubdirectories"];
     [dict setBool:myShouldPrecache forKey:@"PreloadImages"];
     [dict setBool:myShouldSkipICloudFiles forKey:@"ShouldSkipICloudFiles"];
     // [dict setObject:aliasIfNecessary(myFileHierarchyArray) forKey:@"ChosenFiles"];
     dict[@"BackgroundColor"] = archive(myBackgroundColor);
-    [dict setInt:myCommentDisplay forKey:@"CommentDisplay"];
+    [dict setInt:(int)myCommentDisplay forKey:@"CommentDisplay"];
     dict[@"TransitionValues"] = [myTransitionChooser valueDictionary];
     return dict;
 }

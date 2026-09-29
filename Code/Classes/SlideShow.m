@@ -365,7 +365,9 @@
             [progress incrementBy:1.0];
         }
     }
-    if (![arr count]) ;//handle no files here
+    if (![arr count]) {
+        // No files to cache
+    }
     myCachedImages=[[NSMutableArray alloc] initWithArray:arr];
     if (myCommentStyle) myCachedImageComments=[[NSMutableArray alloc] initWithArray:comments];
     [app endModalSession:session];
