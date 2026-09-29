@@ -156,11 +156,12 @@
 
 - (void)outlineViewSelectionDidChange:(NSNotification*)notification {
     if ([myDrawer state]==NSDrawerOpenState) {
-        BOOL shouldDisplayImage;
         id hierarchy=nil;
         NSImage* image=nil;
         NSInteger row=[myFilesTable selectedRow];
-        if (row==-1) shouldDisplayImage=NO;
+        if (row==-1) {
+            // No selection, no image to display
+        }
         else {
             hierarchy=[myFilesTable itemAtRow:row];
             if (hierarchy!=nil && ![hierarchy isFolder])

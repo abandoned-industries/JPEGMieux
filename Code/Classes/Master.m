@@ -182,7 +182,8 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     // Default to YES (skip iCloud files) if not set
     myShouldSkipICloudFiles = dict[@"ShouldSkipICloudFiles"] ? [dict boolForKey:@"ShouldSkipICloudFiles"] : YES;
     myCommentDisplay=[dict intForKey:@"CommentDisplay"];
-    oldFiles= dict[@"ChosenFiles"];
+    // Note: ChosenFiles are not restored from saved preferences (legacy behavior)
+    // oldFiles = dict[@"ChosenFiles"];
     myBackgroundColor=unarchive(dict[@"BackgroundColor"]);
     if (!myBackgroundColor) myBackgroundColor = [NSColor blackColor];
 //    if (! oldFiles) myFileHierarchyArray=[[NSMutableArray alloc] init];
@@ -526,10 +527,8 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 }
 
 - (void)displayImageLoop {
-    NSDate* date;
     const BOOL drawerIsOpen=([myDrawer state]==NSDrawerOpenState || [myDrawer state]==NSDrawerOpeningState);
     [myWindow orderOut:self];
-    date=[NSDate date];
 	
     @try {
         // Show file list panel at start if requested

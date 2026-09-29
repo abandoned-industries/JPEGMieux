@@ -76,7 +76,7 @@ NSRect scaleNone(NSRect viewRect, NSSize imageSize, NSRect* fillRects, unsigned*
 }
 
 NSRect scaleProportional(NSRect viewRect, NSSize imageSize, NSRect* fillRects, unsigned* numFillRects, int numRots) {
-    NSRect drawingRect={ { 0, 0 }, imageSize };
+    NSRect drawingRect;
 
     if (numRots & 1) {
         *numFillRects=2;
