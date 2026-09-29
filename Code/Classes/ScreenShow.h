@@ -13,7 +13,6 @@
 @interface ScreenShow : SlideShow {
     NSWindow* myCoveringWindow;
     BackgroundImageView* myImageView;
-    NSGraphicsContext* myContext;
 }
 
 @end

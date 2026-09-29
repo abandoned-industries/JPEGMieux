@@ -38,7 +38,6 @@
     [NSMenu setMenuBarVisible:NO];
     
     [myCoveringWindow makeKeyAndOrderFront:self];
-    myContext=[NSGraphicsContext graphicsContextWithWindow:myCoveringWindow];
     [super beginShow:files];
 }
 
@@ -117,7 +116,6 @@
     [myCoveringWindow orderOut:self];
     myCoveringWindow = nil;
     myImageView = nil;
-    myContext = nil;
 
     // Call parent cleanup
     [super endShow];
