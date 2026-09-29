@@ -25,7 +25,6 @@
 #import "ModernWindowController.h"
 #import "FileListPanel.h"
 #import "ImageLoader.h"
-#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 NSString* const CancelShowException=@"CancelShow";
 
@@ -253,7 +252,10 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 	
 	[panel setDirectoryURL:[[NSURL alloc] initWithString:startingDirectory]];
 	// Use MediaUtils to support both images and videos
-	[panel setAllowedContentTypes:[MediaUtils supportedFileTypesAsUTTypes]];
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+	[panel setAllowedFileTypes:[MediaUtils supportedFileTypes]];
+	#pragma clang diagnostic pop
 	[panel beginSheetModalForWindow:[myFilesTable window] completionHandler:^(NSInteger returnCode)
 	{
 		[self openPanelDidEnd:panel returnCode:returnCode contextInfo:NULL];

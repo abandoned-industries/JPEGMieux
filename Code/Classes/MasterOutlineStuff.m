@@ -28,7 +28,7 @@
             [fileURLs addObject:[NSURL fileURLWithPath:filename]];
         }
     }
-    [board writeObjects:fileURLs forClasses:@[NSURL.class] options:nil];
+    [board writeObjects:fileURLs];
     [board setPropertyList:hier forType:HierarchyPBoardType];
     return YES;
 }

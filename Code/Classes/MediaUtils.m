@@ -8,7 +8,6 @@
 #import "MediaUtils.h"
 #import <AVFoundation/AVFoundation.h>
 #import <CoreServices/CoreServices.h>
-#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @implementation MediaUtils
 
@@ -53,20 +52,6 @@
     NSMutableArray *types = [NSMutableArray arrayWithArray:[self supportedImageTypes]];
     [types addObjectsFromArray:[self supportedVideoTypes]];
     return types;
-}
-
-+ (NSArray<UTType *> *)supportedFileTypesAsUTTypes {
-    NSArray<NSString *> *typeIdentifiers = [self supportedFileTypes];
-    NSMutableArray<UTType *> *utTypes = [NSMutableArray arrayWithCapacity:[typeIdentifiers count]];
-
-    for (NSString *identifier in typeIdentifiers) {
-        UTType *type = [UTType typeWithIdentifier:identifier];
-        if (type) {
-            [utTypes addObject:type];
-        }
-    }
-
-    return utTypes;
 }
 
 + (BOOL)isImageFile:(NSString *)path {
