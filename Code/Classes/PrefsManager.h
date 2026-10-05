@@ -3,7 +3,7 @@
 #import <Cocoa/Cocoa.h>
 
 //this might be cleaner with selectors instead of "KeyAction"s
-@interface KeyBinding : NSObject {
+@interface KeyBinding : NSObject <NSSecureCoding> {
     @public
     SEL action;
     unichar key;

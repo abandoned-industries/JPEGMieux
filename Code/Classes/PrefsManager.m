@@ -120,8 +120,35 @@ static NSString* displayStringForKey(unichar key) {
                     [myKeyBindings addObject:kb];
                 }
             }
+            [self addMissingDefaultBindings];
         }
     }
+}
+
+// Bindings saved by older versions predate rotate and move-to-trash. Add their
+// default keys once, unless the action is already bound or the key is taken.
+// The flag keeps them from coming back after someone deletes them on purpose.
+- (void)addMissingDefaultBindings {
+    static NSString* const flagKey=@"KeyBindingsRotateTrashDefaultsAdded";
+    NSUserDefaults* prefs=[NSUserDefaults standardUserDefaults];
+    if ([prefs boolForKey:flagKey]) return;
+    KeyBinding* defaults[]={
+        [KeyBinding bindingWithKey:'r' action:@selector(kbRotateCCW:)],
+        [KeyBinding bindingWithKey:'e' action:@selector(kbRotateCW:)],
+        [KeyBinding bindingWithKey:'d' action:@selector(kbMoveToTrash:)],
+    };
+    BOOL added=NO;
+    for (size_t i=0; i < sizeof defaults / sizeof *defaults; i++) {
+        KeyBinding* want=defaults[i];
+        BOOL skip=NO;
+        for (KeyBinding* kb in myKeyBindings) {
+            if (kb->action==want->action || kb->key==want->key) { skip=YES; break; }
+        }
+        if (!skip) { [myKeyBindings addObject:want]; added=YES; }
+    }
+    if (added) [self savePrefs];
+    [prefs setBool:YES forKey:flagKey];
+    [prefs synchronize];
 }
 
 - (void)savePrefs {
@@ -218,8 +245,6 @@ static NSString* displayStringForKey(unichar key) {
         [KeyBinding bindingWithKey:NSUpArrowFunctionKey action:@selector(kbPrevPic:)],
         [KeyBinding bindingWithKey:EscapeKey action:@selector(kbEndShow:)],
         [KeyBinding bindingWithKey:' ' action:@selector(kbToggleAdvance:)],
-        [KeyBinding bindingWithKey:'+' action:@selector(kbIncreaseSpeed:)],
-        [KeyBinding bindingWithKey:'-' action:@selector(kbDecreaseSpeed:)],
         [KeyBinding bindingWithKey:'d' action:@selector(kbMoveToTrash:)],
         [KeyBinding bindingWithKey:'r' action:@selector(kbRotateCCW:)],
         [KeyBinding bindingWithKey:'e' action:@selector(kbRotateCW:)],
@@ -310,6 +335,12 @@ static NSString* displayStringForKey(unichar key) {
 
 @implementation KeyBinding
 
+// Saved bindings are read back with the secure unarchiver, which refuses classes
+// that don't say they support secure coding.
++ (BOOL)supportsSecureCoding {
+    return YES;
+}
+
 + (KeyBinding*)bindingWithKey:(unichar)nkey action:(SEL)naction {
     KeyBinding* kb=[[self alloc] init];
     kb->action=naction;
@@ -325,7 +356,7 @@ static NSString* displayStringForKey(unichar key) {
             action = NSSelectorFromString(actionString);
         }
         key = (unichar)[coder decodeIntegerForKey:@"key"];
-        param = [coder decodeObjectForKey:@"param"];
+        param = [coder decodeObjectOfClasses:[NSSet setWithObjects:[NSNull class], [NSString class], [NSNumber class], nil] forKey:@"param"];
         if ([param isKindOfClass:[NSNull class]]) {
             param = nil;
         }
