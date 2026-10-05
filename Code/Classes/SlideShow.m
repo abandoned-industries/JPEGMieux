@@ -482,6 +482,12 @@
     return myCurrentImageIndex - 1;
 }
 
+- (NSString *)currentFilePathForPanel {
+    NSInteger index = [self currentFileIndex];
+    if (index < 0 || index >= (NSInteger)[myChosenFiles count]) return nil;
+    return [myChosenFiles objectAtIndex:index];
+}
+
 - (void)jumpToIndex:(NSInteger)index {
     if (index < 0 || index >= (NSInteger)[myChosenFiles count]) {
         return;

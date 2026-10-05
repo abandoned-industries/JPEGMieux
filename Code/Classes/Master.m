@@ -583,7 +583,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
                 shouldContinue=[myCurrentShow advanceImage:&timeOfDisplay];
 
                 // Update file list panel selection
-                [[FileListPanel sharedPanel] setCurrentIndex:[myCurrentShow currentFileIndex]];
+                [[FileListPanel sharedPanel] setCurrentFilePath:[myCurrentShow currentFilePathForPanel]];
 
             reeval:
 				action=eNothing;

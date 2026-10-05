@@ -23,6 +23,7 @@
 
 // Update with file list - will filter out unplayable video files
 - (void)updateWithFiles:(NSArray *)files currentIndex:(NSInteger)index;
+- (void)setCurrentFilePath:(NSString *)path;  // Path of the image now showing; never triggers a jump
 - (void)highlightCurrentFile;
 - (void)toggle;
 - (void)setShowMoviesOnly:(BOOL)moviesOnly;

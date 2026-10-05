@@ -37,6 +37,8 @@ static NSMutableDictionary *videoValidationCache = nil;
 @property (nonatomic, strong) NSString *currentFilePath;  // Current file path for highlighting
 @property (nonatomic, strong) NSString *commonRoot;  // Common root directory
 @property (nonatomic, assign) BOOL showMoviesOnly;
+@property (nonatomic, strong) NSMutableDictionary *itemsByPath;  // file path -> FileListItem
+@property (nonatomic, assign) BOOL applyingProgrammaticSelection;  // YES while we move the selection ourselves
 @end
 
 @implementation FileListPanel
@@ -217,6 +219,7 @@ static NSMutableDictionary *videoValidationCache = nil;
 
 - (void)buildOutlineViewStructure:(NSArray *)files {
     [_outlineItems removeAllObjects];
+    _itemsByPath = [[NSMutableDictionary alloc] init];
 
     // Group files by folder
     NSMutableDictionary *folderMap = [[NSMutableDictionary alloc] init];  // folder path -> FileListItem
@@ -254,6 +257,7 @@ static NSMutableDictionary *videoValidationCache = nil;
 
         FileListItem *folderItem = folderMap[folder];
         [folderItem.children addObject:fileItem];
+        _itemsByPath[filePath] = fileItem;
     }
 
     // Sort folders by path using localizedStandardCompare for stability
@@ -308,7 +312,7 @@ static NSMutableDictionary *videoValidationCache = nil;
 - (void)moviesOnlyChanged:(id)sender {
     _showMoviesOnly = ([_moviesOnlyCheckbox state] == NSControlStateValueOn);
     [self filterFilesAndBuildMapping:_allFiles currentIndex:_currentIndex];
-    [_outlineView reloadData];
+    [self reloadOutlinePreservingSelectionCallbacks];
     [self highlightCurrentFile];
 }
 
@@ -318,35 +322,43 @@ static NSMutableDictionary *videoValidationCache = nil;
     _allFiles = [files copy];  // Store for re-filtering when checkbox changes
     _currentIndex = index;
     [self filterFilesAndBuildMapping:files currentIndex:index];
-    [_outlineView reloadData];
+    [self reloadOutlinePreservingSelectionCallbacks];
     [self highlightCurrentFile];
+}
+
+// reloadData and programmatic selection fire outlineViewSelectionDidChange:,
+// which must never be mistaken for the user picking a file.
+- (void)reloadOutlinePreservingSelectionCallbacks {
+    BOOL wasApplying = _applyingProgrammaticSelection;
+    _applyingProgrammaticSelection = YES;
+    [_outlineView reloadData];
+    _applyingProgrammaticSelection = wasApplying;
 }
 
 - (void)highlightCurrentFile {
     if (!_currentFilePath) return;
+    FileListItem *fileItem = _itemsByPath[_currentFilePath];
+    if (!fileItem) return;
 
-    // Collapse all folders first
-    for (FileListItem *folderItem in _outlineItems) {
-        [_outlineView collapseItem:folderItem];
-    }
-
-    // Find and expand the folder containing current file
-    for (FileListItem *folderItem in _outlineItems) {
-        for (FileListItem *fileItem in folderItem.children) {
-            if ([fileItem.fullPath isEqual:_currentFilePath]) {
-                // Expand this folder
-                [_outlineView expandItem:folderItem];
-
-                // Select and scroll to the file
-                NSInteger rowIndex = [_outlineView rowForItem:fileItem];
-                if (rowIndex >= 0) {
-                    [_outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:rowIndex] byExtendingSelection:NO];
-                    [_outlineView scrollRowToVisible:rowIndex];
-                }
-                return;
-            }
+    BOOL wasApplying = _applyingProgrammaticSelection;
+    _applyingProgrammaticSelection = YES;
+    // Reveal the current file's folder without collapsing whatever else the user has open
+    FileListItem *folderItem = nil;
+    for (FileListItem *candidate in _outlineItems) {
+        if ([candidate.fullPath isEqual:[_currentFilePath stringByDeletingLastPathComponent]]) {
+            folderItem = candidate;
+            break;
         }
     }
+    if (folderItem && ![_outlineView isItemExpanded:folderItem]) {
+        [_outlineView expandItem:folderItem];
+    }
+    NSInteger rowIndex = [_outlineView rowForItem:fileItem];
+    if (rowIndex >= 0) {
+        [_outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:rowIndex] byExtendingSelection:NO];
+        [_outlineView scrollRowToVisible:rowIndex];
+    }
+    _applyingProgrammaticSelection = wasApplying;
 }
 
 - (void)toggle {
@@ -363,21 +375,31 @@ static NSMutableDictionary *videoValidationCache = nil;
     [_moviesOnlyCheckbox setState:moviesOnly ? NSControlStateValueOn : NSControlStateValueOff];
     if (_allFiles) {
         [self filterFilesAndBuildMapping:_allFiles currentIndex:_currentIndex];
-        [_outlineView reloadData];
+        [self reloadOutlinePreservingSelectionCallbacks];
         [self highlightCurrentFile];
     }
 }
 
 - (void)setCurrentIndex:(NSInteger)currentIndex {
     _currentIndex = currentIndex;
-    // Find the corresponding file path
-    if (currentIndex >= 0 && currentIndex < (NSInteger)[_originalIndexMap count]) {
-        NSInteger originalIndex = [_originalIndexMap[currentIndex] integerValue];
-        if (originalIndex >= 0 && originalIndex < (NSInteger)[_allFiles count]) {
-            _currentFilePath = _allFiles[originalIndex];
-        }
+    // currentIndex indexes the slideshow's own list (_allFiles), not the filtered display list
+    if (currentIndex >= 0 && currentIndex < (NSInteger)[_allFiles count]) {
+        [self setCurrentFilePath:_allFiles[currentIndex]];
     }
-    [_outlineView reloadData];
+}
+
+- (void)setCurrentFilePath:(NSString *)path {
+    if (!path || [path isEqual:_currentFilePath]) return;
+    NSString *oldPath = _currentFilePath;
+    _currentFilePath = path;
+    if (![self isVisible]) return;  // highlightCurrentFile runs when the panel is shown
+
+    // Repaint just the old and new rows (the current file is drawn yellow)
+    BOOL wasApplying = _applyingProgrammaticSelection;
+    _applyingProgrammaticSelection = YES;
+    if (oldPath && _itemsByPath[oldPath]) [_outlineView reloadItem:_itemsByPath[oldPath]];
+    if (_itemsByPath[path]) [_outlineView reloadItem:_itemsByPath[path]];
+    _applyingProgrammaticSelection = wasApplying;
     [self highlightCurrentFile];
 }
 
@@ -447,12 +469,16 @@ static NSMutableDictionary *videoValidationCache = nil;
 #pragma mark - NSOutlineViewDelegate
 
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification {
+    if (_applyingProgrammaticSelection) return;  // we moved the selection ourselves; not a user pick
     NSInteger row = [_outlineView selectedRow];
     if (row >= 0) {
         id item = [_outlineView itemAtRow:row];
         if ([item isKindOfClass:[FileListItem class]]) {
             FileListItem *listItem = (FileListItem *)item;
-            if (!listItem.isFolder) {
+            if (listItem.isFolder) {
+                // Picking a folder row opens it so its files can be chosen
+                if (![_outlineView isItemExpanded:listItem]) [_outlineView expandItem:listItem];
+            } else {
                 // File was selected
                 if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
                     [_fileListDelegate fileListPanel:self didSelectFilePath:listItem.fullPath];

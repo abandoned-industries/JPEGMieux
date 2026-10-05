@@ -86,6 +86,7 @@
 // File list navigation
 - (NSArray *)fileList;
 - (NSInteger)currentFileIndex;
+- (NSString *)currentFilePathForPanel;
 - (void)jumpToIndex:(NSInteger)index;
 - (void)jumpToPath:(NSString *)path;
 
