@@ -30,21 +30,16 @@ I browse large photo archives: tens of thousands of images in nested folders on 
 
 == Features
 
-* Full-screen and windowed slideshow modes
-* **Video playback support** (MP4, MOV, M4V, AVI, and more)
-* Multiple transition effects (crossfade, scroll, etc.)
-* Modern card-based UI layout
-* Quick file picker panel during slideshow (Tab key)
-* Movies-only filter option
-* Customizable keybindings for slideshow control
-* Image sorting (by name, date modified, date created, or number)
-* Hierarchical folder support with drag and drop
-* Custom background colors
-* Smart image caching for improved performance
-* High-quality image upscaling with trilinear filtering
-* Support for animated GIFs
-* JPEG comment display
-* Online image sequence support
+* Window, full-screen, and Dock slideshow modes
+* **Video playback** (MP4, MOV, M4V, AVI, and more), with playback controls; unplayable videos are skipped
+* Movies-only filter
+* Folder trees: add folders by dialog or drag and drop, with optional recursive scanning of subfolders
+* File list panel during a slideshow (Tab key), grouped by folder, for jumping to any photo
+* JPEG comment display ("Show comments")
+* Custom background color
+* Optional precaching of images for faster display
+* Smooth (trilinear) upscaling of small images
+* Build date and commit shown in the window title and About box
 
 == Keyboard Shortcuts (During Slideshow)
 
@@ -109,6 +104,10 @@ The following legacy features were removed as they no longer work on modern macO
 * **Image rotation/flipping** - Keyboard shortcuts removed
 * **Move to Trash** - Keyboard shortcut removed
 * **Move/Copy to folder** - Keyboard shortcuts removed
+* **Transition effects** - The code remains, but there is no longer any way to choose one
+* **Online image sequences** - The code remains, but nothing in the app opens it
+* **Image sorting menu** - Sorting code remains, but no menu offers it
+* **Animated GIFs** - GIFs display, but only their first frame
 * **Deprecated preferences** - Removed non-working options
 
 === Bug Fixes
