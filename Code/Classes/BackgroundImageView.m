@@ -7,6 +7,7 @@
 #import "BackgroundImageView.h"
 #import "Procedural.h"
 #import "Scaling.h"
+#import "ImageUpscaler.h"
 #import <QuartzCore/QuartzCore.h>
 
 @implementation BackgroundImageView
@@ -38,6 +39,45 @@
     return self;
 }
 
+// When the picture is shown larger than its native size, returns a Lanczos
+// upscaled copy that already has the on-screen size, so the image view does not
+// stretch it again. Otherwise returns the picture itself.
+- (NSImage*)upscaledImageForTurns:(int)turns {
+    if (!myImage || isShowingVideo) return myImage;
+    NSSize size=[myImage size];
+    NSSize bounds=[imageView bounds].size;
+    if (size.width <= 0 || size.height <= 0 || bounds.width <= 0 || bounds.height <= 0) return myImage;
+    NSSize turned=(turns & 1) ? NSMakeSize(size.height, size.width) : size;
+    NSSize fit;
+    switch (imageView.imageScaling) {
+        case NSImageScaleProportionallyUpOrDown: {
+            CGFloat factor=MIN(bounds.width/turned.width, bounds.height/turned.height);
+            fit=NSMakeSize(turned.width*factor, turned.height*factor);
+            break;
+        }
+        case NSImageScaleAxesIndependently:
+            fit=bounds;
+            break;
+        default:
+            return myImage;
+    }
+    if (turns & 1) fit=NSMakeSize(fit.height, fit.width);
+    CGFloat backing=[[self window] backingScaleFactor];
+    if (backing < 1) backing=[[NSScreen mainScreen] backingScaleFactor];
+    NSImage* upscaled=[ImageUpscaler upscaledImage:myImage toFitSize:fit backingScale:backing];
+    return upscaled ? upscaled : myImage;
+}
+
+// The target size changes with the view, so refit once resizing settles.
+- (void)setFrameSize:(NSSize)newSize {
+    BOOL changed=!NSEqualSizes(newSize, [self frame].size);
+    [super setFrameSize:newSize];
+    if (changed && myImage) {
+        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(updateDisplayedImage) object:nil];
+        [self performSelector:@selector(updateDisplayedImage) withObject:nil afterDelay:0.15];
+    }
+}
+
 // The rotation is in radians, counter-clockwise, always a multiple of 90 degrees.
 - (int)quarterTurns {
     int turns=(int)lrint(myRotation / M_PI_2) % 4;
@@ -48,12 +88,13 @@
 // as wide as the original is tall (for 90 and 270 degrees), so the image view
 // fits it to the window as if it had been that shape all along.
 - (void)updateDisplayedImage {
-    NSImage* shown=myImage;
     int turns=[self quarterTurns];
-    NSSize size=[myImage size];
-    if (myImage && turns && size.width > 0 && size.height > 0) {
+    NSImage* base=[self upscaledImageForTurns:turns];
+    NSImage* shown=base;
+    NSSize size=[base size];
+    if (base && turns && size.width > 0 && size.height > 0) {
         NSSize turnedSize=(turns & 1) ? NSMakeSize(size.height, size.width) : size;
-        NSImage* source=myImage;
+        NSImage* source=base;
         shown=[NSImage imageWithSize:turnedSize flipped:NO drawingHandler:^BOOL(NSRect dst) {
             NSAffineTransform* transform=[NSAffineTransform transform];
             [transform translateXBy:NSWidth(dst)/2 yBy:NSHeight(dst)/2];

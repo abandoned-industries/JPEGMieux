@@ -11,6 +11,7 @@
 		MODERN01171A40A400528ABE /* ModernWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = MODERN02171A40A400528ABE /* ModernWindowController.m */; };
 		930E803417247A9C00291667 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 930E803217247A9C00291667 /* Quartz.framework */; };
 		930E803517247A9C00291667 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 930E803317247A9C00291667 /* QuartzCore.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		A1B2C3D4E5F6071800000002 /* ImageUpscaler.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000001 /* ImageUpscaler.m */; };
 		930E880617247A9C00291668 /* ImageLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 930E880517247A9C00291668 /* ImageLoader.m */; };
 		930E880817247A9C00291668 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 930E880717247A9C00291668 /* ImageIO.framework */; };
 		930E880917247A9C00291669 /* MediaUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 930E880B17247A9C00291669 /* MediaUtils.m */; };
@@ -76,6 +77,8 @@
 		0A052D38085C74ED0037FF42 /* Scaling.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = Scaling.m; path = Code/Scaling.m; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		930E880417247A9C00291668 /* ImageLoader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageLoader.h; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071800000001 /* ImageUpscaler.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageUpscaler.m; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071800000003 /* ImageUpscaler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageUpscaler.h; sourceTree = "<group>"; };
 		930E880517247A9C00291668 /* ImageLoader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageLoader.m; sourceTree = "<group>"; };
 		930E880717247A9C00291668 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		930E880A17247A9C00291669 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
@@ -372,6 +375,8 @@
 				FILELS02171A40A400528ABE /* FileListPanel.m */,
 				930E880417247A9C00291668 /* ImageLoader.h */,
 				930E880517247A9C00291668 /* ImageLoader.m */,
+				A1B2C3D4E5F6071800000003 /* ImageUpscaler.h */,
+				A1B2C3D4E5F6071800000001 /* ImageUpscaler.m */,
 				930E880F17247A9C00291669 /* MediaUtils.h */,
 				930E880B17247A9C00291669 /* MediaUtils.m */,
 				F5B3295D0200F14901FDC0B7 /* Master.h */,
@@ -506,6 +511,7 @@
 				93E45F5B14638CFD00C5C55B /* Procedural.m in Sources */,
 				93E45F3E14638CF100C5C55B /* SlideShow.m in Sources */,
 				930E880617247A9C00291668 /* ImageLoader.m in Sources */,
+				A1B2C3D4E5F6071800000002 /* ImageUpscaler.m in Sources */,
 				930E880917247A9C00291669 /* MediaUtils.m in Sources */,
 				93E45F4014638CF100C5C55B /* DockShow.m in Sources */,
 				93E45F4214638CF100C5C55B /* ScreenShow.m in Sources */,
