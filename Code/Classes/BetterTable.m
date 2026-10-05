@@ -10,9 +10,22 @@
 
 @implementation BetterTable
 
-- (void)awakeFromNib {
-    [self registerForDraggedTypes:[NSArray arrayWithObjects:NSPasteboardTypeFileURL, nil]];
-    //[[[self enclosingScrollView] contentView] setCopiesOnScroll:YES];
+// The modern main window creates this table in code, so awakeFromNib never
+// runs there; register for drops from every initializer.
+- (void)registerDragTypes {
+    [self registerForDraggedTypes:@[NSPasteboardTypeFileURL, HierarchyPBoardType]];
+    [self setDraggingSourceOperationMask:NSDragOperationEvery forLocal:YES];
+    [self setDraggingSourceOperationMask:NSDragOperationCopy | NSDragOperationLink forLocal:NO];
+}
+
+- (instancetype)initWithFrame:(NSRect)frameRect {
+    if ((self = [super initWithFrame:frameRect])) [self registerDragTypes];
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder*)coder {
+    if ((self = [super initWithCoder:coder])) [self registerDragTypes];
+    return self;
 }
 
 - (void)setHasBorder:(BOOL)v {
