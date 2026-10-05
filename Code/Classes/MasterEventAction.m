@@ -75,66 +75,57 @@
     return eReeval;
 }
 
-- (EventAction)kbMoveToTrash:(id)param {
-    NSString* path = [myCurrentShow currentPath];
-    if (![path length]) {
-        NSBeep();
-        return eReeval;
-    }
-
-    NSURL *fileURL = [NSURL fileURLWithPath:path];
-    NSError *error = nil;
-
-    if (![[NSFileManager defaultManager] trashItemAtURL:fileURL
-                                      resultingItemURL:nil
-                                                 error:&error]) {
-        NSBeep();
-        return eReeval;
-    }
-
-    // Remove the file from the show's internal file list
-    NSInteger currentIndex = [myCurrentShow currentFileIndex];
-    NSArray *showFileList = [myCurrentShow fileList];
-
-    if (currentIndex >= 0 && currentIndex < (NSInteger)[showFileList count]) {
-        // Remove from show's internal list (need to access private member)
-        // Since we can't directly access myChosenFiles, we'll use KVC
-        NSMutableArray *showChosenFiles = [myCurrentShow valueForKey:@"myChosenFiles"];
-        [showChosenFiles removeObjectAtIndex:currentIndex];
-
-        // Remove from Master's file hierarchy
-        // Find and remove the path from myFileHierarchyArray
-        [self removeFilePath:path fromHierarchy:myFileHierarchyArray];
-
-        // Update the file list panel
-        FileListPanel *panel = [FileListPanel sharedPanel];
-        [panel updateWithFiles:[myCurrentShow fileList] currentIndex:[myCurrentShow currentFileIndex]];
-    }
-
-    // Advance to next image
-    return eNext;
-}
-
-// Helper method to recursively remove a path from the file hierarchy
-- (void)removeFilePath:(NSString *)filePath fromHierarchy:(NSMutableArray *)hierarchy {
-    for (NSInteger i = [hierarchy count] - 1; i >= 0; i--) {
-        id item = [hierarchy objectAtIndex:i];
-        if ([item isKindOfClass:[NSString class]] && [item isEqualToString:filePath]) {
-            [hierarchy removeObjectAtIndex:i];
-        } else if ([item isKindOfClass:[NSMutableArray class]]) {
-            [self removeFilePath:filePath fromHierarchy:item];
-            // Remove empty arrays
-            if ([(NSArray *)item count] == 0) {
-                [hierarchy removeObjectAtIndex:i];
+// Removes a path from the hierarchy of top-level files and folders. A file is
+// an NSString; a folder is an array of {path, contents}. Folders stay, even if
+// they end up empty, so their {path, contents} shape is never broken.
+static BOOL removePathFromHierarchy(NSString* path, NSMutableArray* items) {
+    NSString* target=[path stringByStandardizingPath];
+    for (NSInteger i=(NSInteger)[items count]-1; i>=0; i--) {
+        id item=items[i];
+        if ([item isKindOfClass:[NSString class]]) {
+            if ([item isEqualToString:path] || [[item stringByStandardizingPath] isEqualToString:target]) {
+                [items removeObjectAtIndex:i];
+                return YES;
             }
-        } else if ([item respondsToSelector:@selector(valueForKey:)]) {
-            // Handle FileHierarchy objects
-            NSMutableArray *files = [item valueForKey:@"myFiles"];
-            if (files) {
-                [self removeFilePath:filePath fromHierarchy:files];
-            }
+        } else if ([item isKindOfClass:[NSMutableArray class]] && [item count] >= 2) {
+            id contents=[item contents];
+            if ([contents isKindOfClass:[NSMutableArray class]] && removePathFromHierarchy(path, contents)) return YES;
         }
     }
+    return NO;
+}
+
+- (EventAction)kbMoveToTrash:(id)param {
+    NSString* path=[myCurrentShow currentPath];
+    if (![path length] || [path hasPrefix:@"http://"] || [path hasPrefix:@"https://"]) {
+        NSBeep();
+        return eReeval;
+    }
+
+    NSError* error=nil;
+    if (![[NSFileManager defaultManager] trashItemAtURL:[NSURL fileURLWithPath:path]
+                                       resultingItemURL:nil
+                                                  error:&error]) {
+        NSBeep();
+        return eReeval;
+    }
+
+    BOOL removedLast;
+    BOOL anyLeft=[myCurrentShow removeCurrentFile:&removedLast];
+    removePathFromHierarchy(path, myFileHierarchyArray);
+    [myFilesTable reloadData];
+
+    if (!anyLeft) return eStop;
+
+    FileListPanel* panel=[FileListPanel sharedPanel];
+    [panel updateWithFiles:[myCurrentShow fileList] currentIndex:[myCurrentShow currentFileIndex]];
+
+    // Trashed the last picture: step back to the new last one instead of ending the show
+    if (removedLast) {
+        [myCurrentShow rewind:1];
+        return ePrev;
+    }
+    return eNext;
 }
 
 @end

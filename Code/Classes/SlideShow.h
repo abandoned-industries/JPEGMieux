@@ -52,6 +52,11 @@
 
 - (NSString*)currentPath;
 
+// Drops the image on screen from the show (after its file was trashed). Returns NO if
+// the show is now empty. *wasLast says it was the last image, in which case nothing
+// follows it. Otherwise the next image to be shown is the one that followed it.
+- (BOOL)removeCurrentFile:(BOOL*)wasLast;
+
 - (void)setImageScaling:(BetterImageScaling)scaling;
 - (BetterImageScaling)imageScaling;
 

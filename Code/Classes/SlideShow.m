@@ -215,6 +215,24 @@
     return [myChosenFiles objectAtIndex:myCurrentImageIndex-1];
 }
 
+- (BOOL)removeCurrentFile:(BOOL*)wasLast {
+    NSInteger cur=myCurrentImageIndex-1;
+    if (cur < 0 || cur >= (NSInteger)[myChosenFiles count]) {
+        if (wasLast) *wasLast=NO;
+        return [myChosenFiles count] > 0;
+    }
+    [myChosenFiles removeObjectAtIndex:cur];
+    if (myCachedImages && cur < (NSInteger)[myCachedImages count]) [myCachedImages removeObjectAtIndex:cur];
+    if (myCachedImageComments && cur < (NSInteger)[myCachedImageComments count]) [myCachedImageComments removeObjectAtIndex:cur];
+    [myImageCache removeAllObjects]; // keyed by index, so every entry after cur is now stale
+    myCurrentImageIndex=(int)cur;    // the file that followed has slid into the slot just freed
+    BOOL last=(cur >= (NSInteger)[myChosenFiles count]);
+    if (wasLast) *wasLast=last;
+    if (![myChosenFiles count]) return NO;
+    if (!last) [self loadNextImage];
+    return YES;
+}
+
 - (void)rewind:(int)count {
     int newImageIndex = 0;
 
