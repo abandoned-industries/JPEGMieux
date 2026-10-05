@@ -398,6 +398,7 @@
 				93E45F0814638A3000C5C55B /* Sources */,
 				93E45F0914638A3000C5C55B /* Frameworks */,
 				93E45F0A14638A3000C5C55B /* Resources */,
+				E7A738DF0C87E1218ACC9822 /* Stamp Build Info */,
 			);
 			buildRules = (
 			);
@@ -454,6 +455,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+
+/* Begin PBXShellScriptBuildPhase section */
+		E7A738DF0C87E1218ACC9822 /* Stamp Build Info */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "# Stamp the built app with build date and commit hash\nBUILD_DATE=$(date '+%Y-%m-%d %H:%M')\nCOMMIT_HASH=$(git rev-parse --short HEAD)\nif ! git diff-index --quiet HEAD --; then\n    COMMIT_HASH=\"${COMMIT_HASH}+\"\nfi\n\n# Write the keys to the built Info.plist\nINFOPLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n/usr/libexec/PlistBuddy -c \"Add :JDBuildDate string '$BUILD_DATE'\" \"$INFOPLIST\" 2>/dev/null || /usr/libexec/PlistBuddy -c \"Set :JDBuildDate '$BUILD_DATE'\" \"$INFOPLIST\"\n/usr/libexec/PlistBuddy -c \"Add :JDBuildCommit string '$COMMIT_HASH'\" \"$INFOPLIST\" 2>/dev/null || /usr/libexec/PlistBuddy -c \"Set :JDBuildCommit '$COMMIT_HASH'\" \"$INFOPLIST\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		93E45F0814638A3000C5C55B /* Sources */ = {

@@ -19,7 +19,18 @@
                                                             NSWindowStyleMaskResizable
                                                      backing:NSBackingStoreBuffered
                                                        defer:NO];
-    window.title = @"JPEGDeux";
+
+    // Set window title with build info
+    NSString *baseTitle = @"JPEGDeux";
+    NSString *buildDate = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"JDBuildDate"];
+    NSString *buildCommit = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"JDBuildCommit"];
+
+    if (buildDate && buildCommit) {
+        window.title = [NSString stringWithFormat:@"%@ — built %@ (%@)", baseTitle, buildDate, buildCommit];
+    } else {
+        window.title = baseTitle;
+    }
+
     window.minSize = NSMakeSize(750, 600);
     [window setFrameAutosaveName:@"ModernMainWindow"];
 
