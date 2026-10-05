@@ -245,7 +245,9 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 	
 	[panel setDirectoryURL:[[NSURL alloc] initWithString:startingDirectory]];
 	// Use MediaUtils to support both images and videos
-	[panel setAllowedContentTypes:[MediaUtils supportedFileTypesAsUTTypes]];
+	// allowedContentTypes (unlike the old allowedFileTypes) also filters folders,
+	// so folders must be listed explicitly or they can't be chosen
+	[panel setAllowedContentTypes:[[MediaUtils supportedFileTypesAsUTTypes] arrayByAddingObject:UTTypeFolder]];
 	[panel beginSheetModalForWindow:[myFilesTable window] completionHandler:^(NSInteger returnCode)
 	{
 		[self openPanelDidEnd:panel returnCode:returnCode contextInfo:NULL];
