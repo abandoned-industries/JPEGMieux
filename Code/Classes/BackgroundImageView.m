@@ -38,13 +38,43 @@
     return self;
 }
 
+// The rotation is in radians, counter-clockwise, always a multiple of 90 degrees.
+- (int)quarterTurns {
+    int turns=(int)lrint(myRotation / M_PI_2) % 4;
+    return turns < 0 ? turns+4 : turns;
+}
+
+// Hands the image view the picture turned about its center. The turned picture is
+// as wide as the original is tall (for 90 and 270 degrees), so the image view
+// fits it to the window as if it had been that shape all along.
+- (void)updateDisplayedImage {
+    NSImage* shown=myImage;
+    int turns=[self quarterTurns];
+    NSSize size=[myImage size];
+    if (myImage && turns && size.width > 0 && size.height > 0) {
+        NSSize turnedSize=(turns & 1) ? NSMakeSize(size.height, size.width) : size;
+        NSImage* source=myImage;
+        shown=[NSImage imageWithSize:turnedSize flipped:NO drawingHandler:^BOOL(NSRect dst) {
+            NSAffineTransform* transform=[NSAffineTransform transform];
+            [transform translateXBy:NSWidth(dst)/2 yBy:NSHeight(dst)/2];
+            [transform rotateByDegrees:90.0*turns];
+            [transform translateXBy:-size.width/2 yBy:-size.height/2];
+            [NSGraphicsContext saveGraphicsState];
+            [transform concat];
+            [source drawInRect:NSMakeRect(0, 0, size.width, size.height)
+                      fromRect:NSZeroRect
+                     operation:NSCompositingOperationSourceOver
+                      fraction:1.0];
+            [NSGraphicsContext restoreGraphicsState];
+            return YES;
+        }];
+    }
+    [imageView setImage:shown];
+}
+
 - (void)setRotation:(float)r {
     myRotation=r;
-    // Apply the rotation transform to the image view
-    if (imageView) {
-        CATransform3D transform = CATransform3DMakeRotation(myRotation, 0, 0, 1);
-        imageView.layer.transform = transform;
-    }
+    [self updateDisplayedImage];
 }
 
 - (void)flipHorizontal {
@@ -61,9 +91,9 @@
 }
 
 - (NSSize)scaledSizeForSize:(NSSize)size {
+    // Rotation is not considered here: this pre-sizes the next image before it is
+    // shown, and the image view re-fits whatever turn the picture ends up with.
     NSSize mySize=[self bounds].size;
-    int numRots=(int)rint(myRotation / M_PI_2);
-    if (numRots & 1) mySize=rotateSize(size);
     switch (myScaling) {
         case ScaleDownToFit:
             if (size.height < mySize.height && size.width < mySize.width) return size;
@@ -147,7 +177,7 @@
     [imageView setHidden:NO];
     [videoPlayerView setHidden:YES];
 
-	[imageView setImage:myImage];
+    [self updateDisplayedImage];
 
     [self display];
 }

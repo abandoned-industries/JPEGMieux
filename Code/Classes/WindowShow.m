@@ -30,6 +30,7 @@
 }
 
 - (void)setImage:(NSImage*)image {
+    [myImageView setRotation:myRotation];
     [myImageView setImage:image];
 }
 
