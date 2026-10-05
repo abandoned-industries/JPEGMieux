@@ -74,7 +74,7 @@ static NSMutableDictionary *videoValidationCache = nil;
     [self setLevel:NSFloatingWindowLevel];
     [self setTitle:@"File List"];
     [self setMovableByWindowBackground:YES];
-    [self setHidesOnDeactivate:NO];
+    [self setHidesOnDeactivate:YES];
     [self setReleasedWhenClosed:NO];
 
     // Dark appearance
