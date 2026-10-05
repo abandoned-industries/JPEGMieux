@@ -509,7 +509,7 @@ static NSMutableDictionary *videoValidationCache = nil;
         if (listItem.isFolder) {
             // Folder row - bold and show file count
             cell.stringValue = [NSString stringWithFormat:@"%@ — %ld", listItem.displayName, (long)listItem.fileCount];
-            cell.textColor = [NSColor systemGrayColor];
+            cell.textColor = [NSColor colorWithWhite:0.85 alpha:1.0];
             cell.font = [NSFont boldSystemFontOfSize:13];
         } else {
             // File row
