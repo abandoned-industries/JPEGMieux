@@ -9,7 +9,9 @@
 #import "Scaling.h"
 #import <QuartzCore/QuartzCore.h>
 
-@implementation BackgroundImageView
+@implementation BackgroundImageView {
+    AVPlayerItem *_registeredPlayerItem;  // Track which playerItem has an active observer
+}
 
 - (id)initWithFrame:(NSRect)frame {
     if (self=[super initWithFrame:frame]) {
@@ -188,6 +190,9 @@
     // Start playing
     [videoPlayer play];
 
+    // Save the player item for later removal when stopping
+    _registeredPlayerItem = playerItem;
+
     // Loop video when it ends
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(videoDidEnd:)
@@ -207,9 +212,15 @@
 - (void)stopVideo {
     if (videoPlayer) {
         [videoPlayer pause];
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                        name:AVPlayerItemDidPlayToEndTimeNotification
-                                                      object:videoPlayer.currentItem];
+        // Remove the observer using the saved playerItem to ensure it matches exactly
+        // what was registered. This avoids issues where videoPlayer.currentItem might
+        // not be identical to the original playerItem object reference
+        if (_registeredPlayerItem) {
+            [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                            name:AVPlayerItemDidPlayToEndTimeNotification
+                                                          object:_registeredPlayerItem];
+            _registeredPlayerItem = nil;
+        }
         videoPlayer = nil;
         videoPlayerView.player = nil;
     }
