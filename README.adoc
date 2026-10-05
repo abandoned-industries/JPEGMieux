@@ -26,7 +26,7 @@ I browse large photo archives: tens of thousands of images in nested folders on 
 
 1. http://sourceforge.net/projects/jpegdeux/[JPEGDeux on SourceForge] by Peter Ammon (2001–2013)
 2. https://github.com/teacurran/JpegDeux[teacurran/JpegDeux] by Terrence Curran (2011–2022)
-3. https://github.com/abandoned-industries/JpegDeux[abandoned-industries/JpegDeux]: JPEGMieux (2025–26)
+3. https://github.com/abandoned-industries/JPEGMieux[abandoned-industries/JPEGMieux]: JPEGMieux (2025–26)
 
 == Features
 
