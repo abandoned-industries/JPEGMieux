@@ -40,6 +40,11 @@
 
 - (void)setRotation:(float)r {
     myRotation=r;
+    // Apply the rotation transform to the image view
+    if (imageView) {
+        CATransform3D transform = CATransform3DMakeRotation(myRotation, 0, 0, 1);
+        imageView.layer.transform = transform;
+    }
 }
 
 - (void)flipHorizontal {

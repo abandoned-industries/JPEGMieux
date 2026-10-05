@@ -63,4 +63,16 @@
     return eReeval;
 }
 
+- (EventAction)kbRotateCW:(id)param {
+    [myCurrentShow rotate:3];
+    [myCurrentShow redisplay];
+    return eReeval;
+}
+
+- (EventAction)kbRotateCCW:(id)param {
+    [myCurrentShow rotate:1];
+    [myCurrentShow redisplay];
+    return eReeval;
+}
+
 @end

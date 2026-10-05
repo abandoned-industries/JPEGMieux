@@ -86,6 +86,10 @@
     if (myNextImage==nil && !myNextIsVideo) {
         return NO;
     }
+
+    // Reset rotation when advancing to next image
+    myRotation = 0;
+
     if (myFileNameDisplay==FileNameDisplayPath) {
 		[self setImageName:[myChosenFiles objectAtIndex:myCurrentImageIndex]];
 	} else if (myFileNameDisplay==FileNameDisplayName) {

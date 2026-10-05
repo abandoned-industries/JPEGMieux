@@ -18,6 +18,8 @@
 - (EventAction)kbToggleAdvance:(id)param;
 - (EventAction)kbIncreaseSpeed:(id)param;
 - (EventAction)kbDecreaseSpeed:(id)param;
+- (EventAction)kbRotateCCW:(id)param;
+- (EventAction)kbRotateCW:(id)param;
 - (EventAction)kbToggleComments:(id)param;
 - (EventAction)kbToggleFileList:(id)param;
 - (EventAction)kbCycleFilename:(id)param;
