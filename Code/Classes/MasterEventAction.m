@@ -32,13 +32,12 @@
 }
 
 - (EventAction)kbIncreaseSpeed:(id)param {
-    myTimeInterval*=.75;
+    myTimeInterval=ClampedAdvanceInterval(myTimeInterval*.75);
     return eReeval;
 }
 
 - (EventAction)kbDecreaseSpeed:(id)param {
-    if (myTimeInterval == 0) myTimeInterval=.1;
-    else myTimeInterval*=1.3333333333333333;
+    myTimeInterval=ClampedAdvanceInterval(ClampedAdvanceInterval(myTimeInterval)*1.3333333333333333);
     return eReeval;
 }
 

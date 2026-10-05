@@ -28,6 +28,10 @@ typedef enum {
    eReeval //a horrible hack
 } EventAction;
 
+// Auto-advance never goes faster than this (seconds); an interval of 0 spun the show.
+#define kMinimumAdvanceInterval 0.5
+static inline CFTimeInterval ClampedAdvanceInterval(double v) { return (v == v && v >= kMinimumAdvanceInterval) ? v : kMinimumAdvanceInterval; }
+
 @interface Master : NSObject<NSApplicationDelegate, FileListPanelDelegate> {
     id	myDisplayModeClass;
     BOOL myShouldLoop;

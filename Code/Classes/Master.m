@@ -150,7 +150,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     const id classes[]={[WindowShow class], [ScreenShow class], [DockShow class]};
     myShouldLoop=[dict boolForKey:@"ShouldLoop"];
     myShouldRandomize=[dict boolForKey:@"ShouldRandom"];
-    myTimeInterval=[dict floatForKey:@"TimeInterval"];
+    myTimeInterval=ClampedAdvanceInterval([dict floatForKey:@"TimeInterval"]);
     tag=[dict intForKey:@"DisplayMode"];
     myDisplayModeClass=classes[tag%numShowTypes];
     myShouldAutoAdvance=[dict boolForKey:@"ShouldAutoAdvance"];
@@ -329,7 +329,8 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 }
 
 - (IBAction)setInterval:(id)sender {
-    myTimeInterval=[sender doubleValue];
+    myTimeInterval=ClampedAdvanceInterval([sender doubleValue]);
+    [myTimeIntervalField setDoubleValue:myTimeInterval];
 }
 
 - (IBAction)setImageScaling:(id)sender {
@@ -479,7 +480,8 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
         NSBeep();
         return;
     }
-    myTimeInterval=[myTimeIntervalField doubleValue]; //the IBAction seems unreliable
+    myTimeInterval=ClampedAdvanceInterval([myTimeIntervalField doubleValue]); //the IBAction seems unreliable
+    [myTimeIntervalField setDoubleValue:myTimeInterval];
 	myBackgroundColor = [myBackgroundColorWell color];
 
     [self savePreferenceSettings];
@@ -554,7 +556,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
             reeval:
 				action=eNothing;
                 if (myShouldAutoAdvance) {
-					finishDate=[NSDate dateWithTimeIntervalSinceReferenceDate: myTimeInterval + timeOfDisplay];
+					finishDate=[NSDate dateWithTimeIntervalSinceReferenceDate: ClampedAdvanceInterval(myTimeInterval) + timeOfDisplay];
 				} else {
 					finishDate=[NSDate distantFuture];
 				}
@@ -596,6 +598,9 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
         // Close file list panel when slideshow ends
         [[FileListPanel sharedPanel] orderOut:nil];
 
+        // Space toggles auto-advance during a show; keep the checkbox truthful afterwards
+        [myShouldAutoAdvanceButton setIntValue:myShouldAutoAdvance];
+        [myTimeIntervalField setDoubleValue:myTimeInterval];
         [myWindow makeKeyAndOrderFront:self];
 }
 
