@@ -1,16 +1,32 @@
-= JPEGMieux 2.0 for Apple Silicon
+= JPEGMieux 3.0
 
-A macOS slideshow application for viewing images and videos with transitions, sorting, and customizable keybindings.
+A fast, keyboard-driven slideshow viewer for big photo and video collections on the Mac. Native on Apple Silicon and Intel, macOS 12 or later.
 
-== About
+image::JPEGMieux-icon.png[JPEGMieux icon,256]
 
-JPEGMieux descended from JPEGView via JPEGDeux (Peter Ammon, 2001–) and Terrence Curran's macOS revival, rebuilt for Apple Silicon in 2025–26.
+== Why this exists
 
-**Fork lineage:**
+I browse large photo archives: tens of thousands of images in nested folders on an external drive. For that job I want a viewer that opens a whole folder tree, puts the pictures up full screen, and lets me move through them from the keyboard without importing anything into a library. JPEGDeux did exactly that for years. Then macOS moved on and it stopped running. Nothing current does it quite the same way, so I brought it back.
 
-1. Original: http://sourceforge.net/projects/jpegdeux/[SourceForge JPEGDeux] (no longer maintained, macOS 10.6 and earlier)
-2. First fork: https://github.com/teacurran/JpegDeux[teacurran/JpegDeux] (updated for macOS 10.7-10.8)
-3. This fork: Updated for Apple Silicon and macOS 10.13+ with video support (JPEGMieux, 2025)
+== A short history
+
+*JPEGView (1990s).* Aaron Giles wrote JPEGView for the classic Mac OS. It was the fast, free image viewer many Mac users relied on, and its icon was a glossy red ball with a blue "j".
+
+*JPEGDeux (2001).* When Mac OS X arrived, Peter Ammon wrote JPEGDeux as its successor: "deux" because it was the second one. He dedicated it to Aaron Giles and JPEGView, and kept it going on SourceForge through the mid-2000s. The project went quiet, and the last builds stopped working after Mac OS X 10.6.
+
+*Terrence Curran's revival (2011–2022).* Terrence Curran forked JPEGDeux, got it building and running again on OS X 10.7 and 10.8, and published new builds in 2013. In 2016 he started adding tests ahead of a larger cleanup that never happened.
+
+*Why it broke again.* The code still carried pieces from the early 2000s: QuickTime, which Apple removed along with 32-bit apps; hand-written assembly for old processors; and interface files and system calls that current Xcode no longer accepts. By the Apple Silicon era it would not build or run.
+
+*JPEGMieux (2025–26).* This fork rebuilds it for current Macs. QuickTime is replaced with AVFoundation, so videos play alongside photos. The old code is cleaned up until the build is warning-free apart from one deliberate exception. The file list shows your folders and subfolders. The rebuild was done with Claude Code, Anthropic's AI coding tool, with me testing on my own collection and deciding what stayed.
+
+*The name.* JPEGView, then JPEGDeux, then JPEGMieux. "Mieux" is French for "better", and it is also roughly what a cat says. The cat on the icon is Ajman, peeking out from behind the JPEGView ball where the "2" used to be.
+
+**Lineage:**
+
+1. http://sourceforge.net/projects/jpegdeux/[JPEGDeux on SourceForge] by Peter Ammon (2001–2013)
+2. https://github.com/teacurran/JpegDeux[teacurran/JpegDeux] by Terrence Curran (2011–2022)
+3. https://github.com/abandoned-industries/JpegDeux[abandoned-industries/JpegDeux]: JPEGMieux (2025–26)
 
 == Features
 
@@ -68,7 +84,7 @@ JPEGMieux descended from JPEGView via JPEGDeux (Peter Ammon, 2001–) and Terren
 
 ==== Apple Silicon & Modern macOS Support
 * Native Apple Silicon (M1/M2/M3) support
-* Requires macOS 10.13 (High Sierra) or later
+* Requires macOS 12 or later (3.0)
 * Updated to Xcode 15 project settings
 
 ==== Swift 5 Compatibility
@@ -110,7 +126,7 @@ The following legacy features were removed as they no longer work on modern macO
 Requirements:
 
 * Xcode 15 or later
-* macOS 10.13+ SDK
+* macOS 12+ SDK
 
 To build:
 
@@ -119,6 +135,16 @@ To build:
 3. Build (Cmd+B) or Run (Cmd+R)
 
 == Version History
+
+=== 3.0 (October 2026)
+* Renamed JPEGMieux, with a new icon
+* File list (Tab) groups photos by folder, with collapsible folder headings; it can be resized freely and hides when you switch apps
+* Ticking "Recursively scan subdirectories" rescans folders already in the list
+* Fixed a loop between the file list and the slideshow that made it race through images
+* Auto-advance interval can no longer drop to zero
+* Window title and About box show the build date and commit
+* Signed with Developer ID and notarized by Apple; universal (Apple Silicon and Intel)
+* Requires macOS 12 or later; compiler warnings and deprecated APIs cleaned up
 
 === 2.0a1 (December 2025)
 * Apple Silicon support
@@ -141,4 +167,4 @@ Modified BSD License. See `license.txt` for details.
 
 Copyright © 2001-2013 Peter Ammon (original author) +
 Modifications © 2013 Terrence Curran +
-Modifications © 2025 Claude Code
+Modifications © 2025–2026 Kazys Varnelis
