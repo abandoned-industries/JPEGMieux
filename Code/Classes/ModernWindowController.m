@@ -21,7 +21,7 @@
                                                        defer:NO];
 
     // Set window title with build info
-    NSString *baseTitle = @"JPEGDeux";
+    NSString *baseTitle = @"JPEGMieux";
     NSString *buildDate = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"JDBuildDate"];
     NSString *buildCommit = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"JDBuildCommit"];
 

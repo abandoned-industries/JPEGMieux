@@ -11,10 +11,10 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <menu title="MainMenu" systemMenu="main" id="29" userLabel="MainMenu">
             <items>
-                <menuItem title="JPEGDeux" id="56">
-                    <menu key="submenu" title="JPEGDeux" systemMenu="apple" id="57">
+                <menuItem title="JPEGMieux" id="56">
+                    <menu key="submenu" title="JPEGMieux" systemMenu="apple" id="57">
                         <items>
-                            <menuItem title="About JPEGDeux" id="58">
+                            <menuItem title="About JPEGMieux" id="58">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="orderFrontStandardAboutPanel:" target="-2" id="142"/>
@@ -29,7 +29,7 @@
                             <menuItem isSeparatorItem="YES" id="144">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Hide JPEGDeux" keyEquivalent="h" id="134">
+                            <menuItem title="Hide JPEGMieux" keyEquivalent="h" id="134">
                                 <connections>
                                     <action selector="hide:" target="-2" id="152"/>
                                 </connections>
@@ -47,7 +47,7 @@
                             <menuItem isSeparatorItem="YES" id="149">
                                 <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                             </menuItem>
-                            <menuItem title="Quit JPEGDeux" keyEquivalent="q" id="136">
+                            <menuItem title="Quit JPEGMieux" keyEquivalent="q" id="136">
                                 <connections>
                                     <action selector="terminate:" target="-2" id="139"/>
                                 </connections>
@@ -138,7 +138,7 @@
                 <menuItem title="Help" id="103">
                     <menu key="submenu" title="Help" id="106">
                         <items>
-                            <menuItem title="JPEGDeux Help" keyEquivalent="?" id="111">
+                            <menuItem title="JPEGMieux Help" keyEquivalent="?" id="111">
                                 <connections>
                                     <action selector="showHelp:" target="-1" id="586"/>
                                 </connections>

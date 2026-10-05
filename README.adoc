@@ -1,16 +1,16 @@
-= JpegDeux 2.0 for Apple Silicon
+= JPEGMieux 2.0 for Apple Silicon
 
 A macOS slideshow application for viewing images and videos with transitions, sorting, and customizable keybindings.
 
 == About
 
-This is a modernized fork of JPEGDeux, updated for Apple Silicon and modern macOS using Claude Code (Opus 4), December 2025.
+JPEGMieux descended from JPEGView via JPEGDeux (Peter Ammon, 2001–) and Terrence Curran's macOS revival, rebuilt for Apple Silicon in 2025–26.
 
 **Fork lineage:**
 
 1. Original: http://sourceforge.net/projects/jpegdeux/[SourceForge JPEGDeux] (no longer maintained, macOS 10.6 and earlier)
 2. First fork: https://github.com/teacurran/JpegDeux[teacurran/JpegDeux] (updated for macOS 10.7-10.8)
-3. This fork: Updated for Apple Silicon and macOS 10.13+ with video support
+3. This fork: Updated for Apple Silicon and macOS 10.13+ with video support (JPEGMieux, 2025)
 
 == Features
 
