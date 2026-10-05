@@ -48,6 +48,7 @@
 		93E45F2B14638C2A00C5C55B /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = F5B329870200F21501FDC0B7 /* license.txt */; };
 		93E45F2C14638C2A00C5C55B /* JPEGdeux.icns in Resources */ = {isa = PBXBuildFile; fileRef = F507012A014FF09701000001 /* JPEGdeux.icns */; };
 		93E45F2D14638C2A00C5C55B /* JPEGDeuxDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = F544332B02DAAF3A0109239F /* JPEGDeuxDocument.icns */; };
+		93E45F2E14638C2A00C5C55B /* JPEGMieux.icns in Resources */ = {isa = PBXBuildFile; fileRef = F507012B014FF09701000001 /* JPEGMieux.icns */; };
 		93E45F3614638CE400C5C55B /* Master.m in Sources */ = {isa = PBXBuildFile; fileRef = F5B3295E0200F14901FDC0B7 /* Master.m */; };
 		93E45F3814638CE400C5C55B /* MasterEventAction.m in Sources */ = {isa = PBXBuildFile; fileRef = F53E929402EA3AE901549C9E /* MasterEventAction.m */; };
 		93E45F3A14638CE400C5C55B /* MasterOutlineStuff.m in Sources */ = {isa = PBXBuildFile; fileRef = F512116D02DBECC4012CC1D9 /* MasterOutlineStuff.m */; };
@@ -115,6 +116,7 @@
 		F506D21903931DED01FD9FBC /* DefaultTransitionChooser.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = DefaultTransitionChooser.m; path = Classes/DefaultTransitionChooser.m; sourceTree = "<group>"; };
 		F506D21A03931DED01FD9FBC /* DefaultTransitionChooser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DefaultTransitionChooser.h; path = Classes/DefaultTransitionChooser.h; sourceTree = "<group>"; };
 		F507012A014FF09701000001 /* JPEGdeux.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = JPEGdeux.icns; sourceTree = "<group>"; };
+		F507012B014FF09701000001 /* JPEGMieux.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = JPEGMieux.icns; sourceTree = "<group>"; };
 		F511236902DAD47301CCB2D9 /* FileHierarchySupport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileHierarchySupport.m; sourceTree = "<group>"; };
 		F511236A02DAD47301CCB2D9 /* FileHierarchySupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileHierarchySupport.h; sourceTree = "<group>"; };
 		F512116D02DBECC4012CC1D9 /* MasterOutlineStuff.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MasterOutlineStuff.m; sourceTree = "<group>"; };
@@ -237,6 +239,7 @@
 				F5ECB42E014737C601000001 /* Credits.rtf */,
 				F5B329870200F21501FDC0B7 /* license.txt */,
 				F507012A014FF09701000001 /* JPEGdeux.icns */,
+				F507012B014FF09701000001 /* JPEGMieux.icns */,
 				F544332B02DAAF3A0109239F /* JPEGDeuxDocument.icns */,
 			);
 			name = Resources;
@@ -444,6 +447,7 @@
 				93E45F2B14638C2A00C5C55B /* license.txt in Resources */,
 				93E45F2C14638C2A00C5C55B /* JPEGdeux.icns in Resources */,
 				93E45F2D14638C2A00C5C55B /* JPEGDeuxDocument.icns in Resources */,
+				93E45F2E14638C2A00C5C55B /* JPEGMieux.icns in Resources */,
 				93A31A64171A40A400528ABE /* DefaultTransitionView.nib in Resources */,
 				93A31A65171A40A400528ABE /* ImageWindow.nib in Resources */,
 				93A31A66171A40A400528ABE /* InfoPlist.strings in Resources */,
