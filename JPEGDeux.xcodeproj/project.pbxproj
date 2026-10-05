@@ -460,6 +460,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		E7A738DF0C87E1218ACC9822 /* Stamp Build Info */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -473,7 +474,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "# Stamp the built app with build date and commit hash\nBUILD_DATE=$(date '+%Y-%m-%d %H:%M')\nCOMMIT_HASH=$(git rev-parse --short HEAD)\nif ! git diff-index --quiet HEAD --; then\n    COMMIT_HASH=\"${COMMIT_HASH}+\"\nfi\n\n# Write the keys to the built Info.plist\nINFOPLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n/usr/libexec/PlistBuddy -c \"Add :JDBuildDate string '$BUILD_DATE'\" \"$INFOPLIST\" 2>/dev/null || /usr/libexec/PlistBuddy -c \"Set :JDBuildDate '$BUILD_DATE'\" \"$INFOPLIST\"\n/usr/libexec/PlistBuddy -c \"Add :JDBuildCommit string '$COMMIT_HASH'\" \"$INFOPLIST\" 2>/dev/null || /usr/libexec/PlistBuddy -c \"Set :JDBuildCommit '$COMMIT_HASH'\" \"$INFOPLIST\"\n";
+			shellScript = "# Stamp the built app with build date and commit hash\nBUILD_DATE=$(date '+%Y-%m-%d %H:%M')\nCOMMIT_HASH=$(git rev-parse --short HEAD)\nif ! git diff-index --quiet HEAD --; then\n    COMMIT_HASH=\"${COMMIT_HASH}+\"\nfi\n\n# Write the keys to the built Info.plist\nINFOPLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n/usr/libexec/PlistBuddy -c \"Add :JDBuildDate string '$BUILD_DATE'\" \"$INFOPLIST\" 2>/dev/null || /usr/libexec/PlistBuddy -c \"Set :JDBuildDate '$BUILD_DATE'\" \"$INFOPLIST\"\n/usr/libexec/PlistBuddy -c \"Add :JDBuildCommit string '$COMMIT_HASH'\" \"$INFOPLIST\" 2>/dev/null || /usr/libexec/PlistBuddy -c \"Set :JDBuildCommit '$COMMIT_HASH'\" \"$INFOPLIST\"\n# The standard About box shows CFBundleVersion in parentheses after the version\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion 'built $BUILD_DATE · $COMMIT_HASH'\" \"$INFOPLIST\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
