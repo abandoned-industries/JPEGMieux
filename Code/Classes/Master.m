@@ -344,7 +344,39 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 }
 
 - (IBAction)setShouldRecursivelyScanSubdirectories:(id)sender {
-    myShouldRecursivelyScanSubdirectories=[sender intValue];
+    BOOL newValue = [sender intValue];
+    if (newValue == myShouldRecursivelyScanSubdirectories) {
+        return; // No change, nothing to do
+    }
+    myShouldRecursivelyScanSubdirectories = newValue;
+
+    // Rescan all top-level folders with the new recursive setting
+    [self saveUndoableState];
+
+    NSUInteger i, max = [myFileHierarchyArray count];
+    for (i = 0; i < max; i++) {
+        id item = [myFileHierarchyArray objectAtIndex:i];
+
+        // Only rescan folders, skip single files
+        if ([item isFolder]) {
+            NSString* folderPath = [item filename];
+            NSFileManager* filer = [NSFileManager defaultManager];
+            BOOL itemExists = [filer fileExistsAtPath:folderPath];
+
+            if (itemExists) {
+                // Rebuild the folder hierarchy with the new recursive setting
+                id newHierarchy = [FileHierarchy hierarchyWithPath:folderPath recursive:myShouldRecursivelyScanSubdirectories];
+                if (newHierarchy) {
+                    [myFileHierarchyArray replaceObjectAtIndex:i withObject:newHierarchy];
+                }
+                // If newHierarchy is nil, keep the existing entry unchanged
+            }
+            // If folder no longer exists, keep the existing entry unchanged
+        }
+    }
+
+    [myFilesTable reloadData];
+    [myFilesTable deselectAll:nil];  // Clear selection
 }
 
 - (IBAction)setFileNameDisplayType:(id)sender {
