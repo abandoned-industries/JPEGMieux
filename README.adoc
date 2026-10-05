@@ -35,6 +35,8 @@ I browse large photo archives: tens of thousands of images in nested folders on 
 * Movies-only filter
 * Folder trees: add folders by dialog or drag and drop, with optional recursive scanning of subfolders
 * File list panel during a slideshow (Tab key), grouped by folder, for jumping to any photo
+* Rotate the current image 90° either way while viewing (display only; files are never changed)
+* Move the current image to the Trash during a slideshow
 * JPEG comment display ("Show comments")
 * Custom background color
 * Optional precaching of images for faster display
@@ -51,6 +53,9 @@ I browse large photo archives: tens of thousands of images in nested folders on 
 |Space |Toggle auto-advance
 |Tab |Toggle file list panel
 |P |Cycle filename display
+|R |Rotate 90° counter-clockwise
+|E |Rotate 90° clockwise
+|D |Move current image to the Trash
 |Escape / Cmd+. |End slideshow
 |===
 
@@ -101,8 +106,7 @@ The following legacy features were removed as they no longer work on modern macO
 * **Force Fit scaling option** - Removed from UI
 * **QuickTime-based shows** - Replaced with AVFoundation
 * **Direct Display show mode** - No longer supported
-* **Image rotation/flipping** - Keyboard shortcuts removed
-* **Move to Trash** - Keyboard shortcut removed
+* **Image flipping** - Keyboard shortcuts removed (rotation and Move to Trash came back after 3.0)
 * **Move/Copy to folder** - Keyboard shortcuts removed
 * **Transition effects** - The code remains, but there is no longer any way to choose one
 * **Online image sequences** - The code remains, but nothing in the app opens it
@@ -134,6 +138,11 @@ To build:
 3. Build (Cmd+B) or Run (Cmd+R)
 
 == Version History
+
+=== Since 3.0 (unreleased)
+* Rotation (R / E) and Move to Trash (D) are back
+* Folders can be dragged onto the main window's file list again
+* README lists only features you can actually reach
 
 === 3.0 (October 2026)
 * Renamed JPEGMieux, with a new icon
