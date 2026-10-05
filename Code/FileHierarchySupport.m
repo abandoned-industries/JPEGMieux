@@ -33,8 +33,11 @@ static void flattenHierarchy(id hierarchy, NSMutableArray* array) {
     if (path != nil) {
         if (isDir) {
 			NSError *error = nil;
-			NSArray* dirContents = [filer contentsOfDirectoryAtPath:path error:&error];
-			
+			// The file system returns entries in no defined order; sort them the
+			// way Finder does ("2" before "10", case-insensitive).
+			NSArray* dirContents = [[filer contentsOfDirectoryAtPath:path error:&error]
+				sortedArrayUsingSelector:@selector(localizedStandardCompare:)];
+
             long i, max=[dirContents count];
             NSMutableArray* hierarchyContents=[NSMutableArray arrayWithCapacity:max];
             result=[NSMutableArray arrayWithCapacity:2];
