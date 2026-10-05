@@ -92,9 +92,6 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
         [[NSApplication sharedApplication] setDelegate:self];
         myFileHierarchyArray=[[NSMutableArray alloc] init];
         myUndoer=[[NSUndoManager alloc] init];
-        // Default to recursively scanning subdirectories so users see all images/videos
-        // when they select a folder with subfolders
-        myShouldRecursivelyScanSubdirectories = YES;
         [self loadTransitionChooser];
     }
     return self;
