@@ -19,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.0a1</string>
+	<string>3.0</string>
 	<key>CFBundleSignature</key>
 	<string>JpgD</string>
 	<key>CFBundleVersion</key>
@@ -29,7 +29,7 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2001-2013 Peter Ammon. Modified BSD License.</string>
+	<string>© 2001–2013 Peter Ammon; 2013–2022 Terrence Curran; 2025–2026 Kazys Varnelis. Modified BSD License.</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
