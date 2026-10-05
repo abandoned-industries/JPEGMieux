@@ -12,13 +12,13 @@ I browse large photo archives: tens of thousands of images in nested folders on 
 
 *JPEGView (1990s).* Aaron Giles wrote JPEGView for the classic Mac OS. It was the fast, free image viewer many Mac users relied on, and its icon was a glossy red ball with a blue "j".
 
-*JPEGDeux (2001).* When Mac OS X arrived, Peter Ammon wrote JPEGDeux as its successor: "deux" because it was the second one. He dedicated it to Aaron Giles and JPEGView, and kept it going on SourceForge through the mid-2000s. The project went quiet, and the last builds stopped working after Mac OS X 10.6.
+*JPEGDeux (2001).* When Mac OS X arrived, Peter Ammon wrote JPEGDeux as its successor: "deux" because it was the second one. He dedicated it to Aaron Giles and JPEGView, and kept it going on SourceForge through the mid-2000s. Version 1.5 added an experimental "QuickTime show" that drew pictures directly through QuickTime; Ammon hoped to grow it into iPhoto-style transitions in a window or full screen, but it stayed preliminary. The project went quiet, and the last builds stopped working after Mac OS X 10.6.
 
-*Terrence Curran's revival (2011–2022).* Terrence Curran forked JPEGDeux, got it building and running again on OS X 10.7 and 10.8, and published new builds in 2013. In 2016 he started adding tests ahead of a larger cleanup that never happened.
+*Terrence Curran's revival (2011–2022).* Terrence Curran forked JPEGDeux, got it building and running again on OS X 10.7 and 10.8, and published new builds in 2013. In 2016 he laid groundwork for a Swift rewrite and a larger cleanup (a Swift bridge, a first unit test, code-quality scanning), but the rewrite never happened.
 
 *Why it broke again.* The code still carried pieces from the early 2000s: QuickTime, which Apple removed along with 32-bit apps; hand-written assembly for old processors; and interface files and system calls that current Xcode no longer accepts. By the Apple Silicon era it would not build or run.
 
-*JPEGMieux (2025–26).* This fork rebuilds it for current Macs. QuickTime is replaced with AVFoundation, so videos play alongside photos. The old code is cleaned up until the build is warning-free apart from one deliberate exception. The file list shows your folders and subfolders. The rebuild was done with Claude Code, Anthropic's AI coding tool, with me testing on my own collection and deciding what stayed.
+*JPEGMieux (2025–26).* This fork rebuilds it for current Macs. QuickTime, and with it the old QuickTime show, is replaced with AVFoundation, so videos play alongside photos. The old code is cleaned up until the build is warning-free apart from one deliberate exception. The file list shows your folders and subfolders. The rebuild was done with Claude Code, Anthropic's AI coding tool, with me testing on my own collection and deciding what stayed.
 
 *The name.* JPEGView, then JPEGDeux, then JPEGMieux. "Mieux" is French for "better", and it is also roughly what a cat says. The cat on the icon is Ajman, peeking out from behind the JPEGView ball where the "2" used to be.
 
