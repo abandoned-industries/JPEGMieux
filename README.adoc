@@ -1,4 +1,4 @@
-= JPEGMieux 3.0
+= JPEGMieux 3.1
 
 A fast, keyboard-driven slideshow viewer for big photo and video collections on the Mac. Native on Apple Silicon and Intel, macOS 12 or later.
 
@@ -40,7 +40,7 @@ I browse large photo archives: tens of thousands of images in nested folders on 
 * JPEG comment display ("Show comments")
 * Custom background color
 * Optional precaching of images for faster display
-* Smooth (trilinear) upscaling of small images
+* Sharp GPU upscaling (Lanczos) when small images are enlarged
 * Build date and commit shown in the window title and About box
 
 == Keyboard Shortcuts (During Slideshow)
@@ -139,8 +139,10 @@ To build:
 
 == Version History
 
-=== Since 3.0 (unreleased)
+=== 3.1 (October 2026)
+* Sharper enlargement of small images: Lanczos resampling with light sharpening on the GPU
 * Rotation (R / E) and Move to Trash (D) are back
+* Saved key bindings load again (they had been silently ignored)
 * Folders can be dragged onto the main window's file list again
 * README lists only features you can actually reach
 
