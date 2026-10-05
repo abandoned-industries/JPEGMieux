@@ -454,7 +454,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
             NSFileManager* filer=[NSFileManager defaultManager];
             if (! [[self getSavingDictionary] writeToFile:myCurrentSavingPath atomically:YES])
                 [NSException raise:@"SaveException"
-                            format:@"JPEGDeux couldn't write to the path %@", myCurrentSavingPath];
+                            format:@"JPEGMieux couldn't write to the path %@", myCurrentSavingPath];
             else {
                 NSNumber* newCreator;
                 NSDictionary* attribs;
@@ -466,7 +466,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 				[filer setAttributes:attribs ofItemAtPath:myCurrentSavingPath error:&error];
 				if (error) {
                     [NSException raise:@"SaveException"
-                                format:@"JPEGDeux couldn't change the type/creator code of the saved file"];
+                                format:@"JPEGMieux couldn't change the type/creator code of the saved file"];
 				}
             }
             [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:[NSURL fileURLWithPath:myCurrentSavingPath]];

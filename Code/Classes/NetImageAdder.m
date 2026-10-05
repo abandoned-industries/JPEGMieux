@@ -68,7 +68,7 @@
     else {
         NSAlert *alert = [[NSAlert alloc] init];
         alert.messageText = @"Bad URLs";
-        alert.informativeText = @"JPEGDeux couldn't interpret the supplied URLs.";
+        alert.informativeText = @"JPEGMieux couldn't interpret the supplied URLs.";
         [alert addButtonWithTitle:@"D'oh!"];
         [alert runModal];
     }
@@ -99,7 +99,7 @@
         if (! [[NSBundle mainBundle] loadNibNamed:@"InternetImages" owner:self topLevelObjects:&topLevelObjects] || !myWindow) {
             NSAlert *alert = [[NSAlert alloc] init];
             alert.messageText = @"Nib error";
-            alert.informativeText = @"JPEGDeux couldn't open InternetImages.nib";
+            alert.informativeText = @"JPEGMieux couldn't open InternetImages.nib";
             [alert addButtonWithTitle:@"D'oh!"];
             [alert runModal];
             return;

@@ -313,7 +313,7 @@
     float estimatedMB=estimatedBytes/(float)(1<<20);
 
     if (estimatedMB >= WARNING_LEVEL) {
-        NSString *warningMessage = [NSString stringWithFormat: @"JPEGDeux estimates that precacheing your %ld image%s "
+        NSString *warningMessage = [NSString stringWithFormat: @"JPEGMieux estimates that precacheing your %ld image%s "
                                     @"might take up to %.1f megabytes of RAM. "
                                     @"Are you sure you wish to continue?", max, max==1 ? "" : "s", estimatedMB];
 

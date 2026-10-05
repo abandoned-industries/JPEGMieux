@@ -1,6 +1,4 @@
 /* Localized versions of Info.plist keys */
 
-CFBundleName = "JPEGDeux";
-CFBundleShortVersionString = "2.0a1";
-CFBundleGetInfoString = "JPEGDeux 2.0a1, Copyright 2001-2013 Peter Ammon. Modified BSD License.";
+CFBundleGetInfoString = "JPEGMieux, Copyright 2001-2013 Peter Ammon. Modified BSD License.";
 NSHumanReadableCopyright = "Copyright 2001-2013 Peter Ammon. Modified BSD License.";
