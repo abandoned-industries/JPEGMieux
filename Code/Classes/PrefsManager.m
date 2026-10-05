@@ -25,6 +25,7 @@ NSString* displayers[]={
     @"Toggle auto-advance",
     @"Increase show speed",
     @"Decrease show speed",
+    @"Move to trash",
     @"Rotate counter-clockwise",
     @"Rotate clockwise",
     @"Toggle comment window",
@@ -147,6 +148,7 @@ static NSString* displayStringForKey(unichar key) {
         selectors[i++]=SEL2STR(kbToggleAdvance:);
         selectors[i++]=SEL2STR(kbIncreaseSpeed:);
         selectors[i++]=SEL2STR(kbDecreaseSpeed:);
+        selectors[i++]=SEL2STR(kbMoveToTrash:);
         selectors[i++]=SEL2STR(kbRotateCCW:);
         selectors[i++]=SEL2STR(kbRotateCW:);
         selectors[i++]=SEL2STR(kbToggleComments:);
@@ -216,6 +218,9 @@ static NSString* displayStringForKey(unichar key) {
         [KeyBinding bindingWithKey:NSUpArrowFunctionKey action:@selector(kbPrevPic:)],
         [KeyBinding bindingWithKey:EscapeKey action:@selector(kbEndShow:)],
         [KeyBinding bindingWithKey:' ' action:@selector(kbToggleAdvance:)],
+        [KeyBinding bindingWithKey:'+' action:@selector(kbIncreaseSpeed:)],
+        [KeyBinding bindingWithKey:'-' action:@selector(kbDecreaseSpeed:)],
+        [KeyBinding bindingWithKey:'d' action:@selector(kbMoveToTrash:)],
         [KeyBinding bindingWithKey:'r' action:@selector(kbRotateCCW:)],
         [KeyBinding bindingWithKey:'e' action:@selector(kbRotateCW:)],
         [KeyBinding bindingWithKey:'\t' action:@selector(kbToggleFileList:)],
