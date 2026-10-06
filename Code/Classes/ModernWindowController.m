@@ -94,7 +94,8 @@
     _showFileListButton.frame = NSMakeRect(230, 130, 120, 18);
     _autoAdvanceButton.frame = NSMakeRect(16, 105, 115, 18);
     _intervalField.frame = NSMakeRect(135, 103, 50, 22);
-    _moviesOnlyButton.frame = NSMakeRect(230, 105, 120, 18);
+    _moviesOnlyButton.frame = NSMakeRect(200, 105, 92, 18);
+    _imagesOnlyButton.frame = NSMakeRect(296, 105, 92, 18);
     _precacheButton.frame = NSMakeRect(16, 80, 100, 18);
     _displayCommentsButton.frame = NSMakeRect(135, 80, 140, 18);
     _skipICloudFilesButton.frame = NSMakeRect(16, 55, 230, 18);
@@ -112,6 +113,7 @@
     [playbackCard.contentView addSubview:_displayCommentsButton];
     [playbackCard.contentView addSubview:_showFileListButton];
     [playbackCard.contentView addSubview:_moviesOnlyButton];
+    [playbackCard.contentView addSubview:_imagesOnlyButton];
     [playbackCard.contentView addSubview:_skipICloudFilesButton];
     [playbackCard.contentView addSubview:filenameLabel];
     [playbackCard.contentView addSubview:_filenameDisplayMatrix];
@@ -259,6 +261,9 @@
 
     self.moviesOnlyButton = [NSButton checkboxWithTitle:@"Movies only" target:self.master action:@selector(setMoviesOnly:)];
     self.moviesOnlyButton.font = [NSFont systemFontOfSize:12];
+
+    self.imagesOnlyButton = [NSButton checkboxWithTitle:@"Images only" target:self.master action:@selector(setImagesOnly:)];
+    self.imagesOnlyButton.font = [NSFont systemFontOfSize:12];
 
     self.skipICloudFilesButton = [NSButton checkboxWithTitle:@"Skip undownloaded iCloud files" target:self.master action:@selector(setSkipICloudFiles:)];
     self.skipICloudFilesButton.font = [NSFont systemFontOfSize:12];

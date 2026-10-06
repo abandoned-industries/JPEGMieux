@@ -42,6 +42,7 @@ static inline CFTimeInterval ClampedAdvanceInterval(double v) { return (v == v &
     BOOL myShouldPrecache;
     BOOL myShouldShowFileList;
     BOOL myMoviesOnly;
+    BOOL myImagesOnly;
     BOOL myShouldSkipICloudFiles;
     FileNameDisplay myFileNameDisplay;
     NSMutableArray* myChosenFiles;
@@ -73,6 +74,7 @@ static inline CFTimeInterval ClampedAdvanceInterval(double v) { return (v == v &
     IBOutlet NSButton* myDisplayCommentButton;
     IBOutlet NSButton* myShowFileListButton;
     IBOutlet NSButton* myMoviesOnlyButton;
+    IBOutlet NSButton* myImagesOnlyButton;
     IBOutlet NSButton* mySkipICloudFilesButton;
 }
 
@@ -91,6 +93,8 @@ static inline CFTimeInterval ClampedAdvanceInterval(double v) { return (v == v &
 - (IBAction)setCommentDisplay:(id)sender;
 - (IBAction)setShowFileList:(id)sender;
 - (IBAction)setMoviesOnly:(id)sender;
+- (IBAction)setImagesOnly:(id)sender;
+- (void)syncFileListFilters;
 - (IBAction)setSkipICloudFiles:(id)sender;
 - (IBAction)begin:(id)sender;
 

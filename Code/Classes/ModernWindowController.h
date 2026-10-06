@@ -33,6 +33,7 @@
 @property (nonatomic, strong) NSButton *displayCommentsButton;
 @property (nonatomic, strong) NSButton *showFileListButton;
 @property (nonatomic, strong) NSButton *moviesOnlyButton;
+@property (nonatomic, strong) NSButton *imagesOnlyButton;
 @property (nonatomic, strong) NSButton *skipICloudFilesButton;
 
 // Appearance

@@ -29,12 +29,14 @@ static FileListPanel *sharedInstance = nil;
 @property (nonatomic, strong) NSScrollView *scrollView;
 @property (nonatomic, strong) NSVisualEffectView *backgroundView;
 @property (nonatomic, strong) NSButton *moviesOnlyCheckbox;
+@property (nonatomic, strong) NSButton *imagesOnlyCheckbox;
 @property (nonatomic, strong) NSArray *allFiles;  // All files before filtering
 @property (nonatomic, strong) NSArray *displayFiles;  // Filtered files for display
 @property (nonatomic, strong) NSMutableArray *outlineItems;  // Root items for outline view
 @property (nonatomic, strong) NSString *currentFilePath;  // Current file path for highlighting
 @property (nonatomic, strong) NSString *commonRoot;  // Common root directory
 @property (nonatomic, assign) BOOL showMoviesOnly;
+@property (nonatomic, assign) BOOL showImagesOnly;
 @property (nonatomic, strong) NSMutableDictionary *itemsByPath;  // file path -> FileListItem
 @property (nonatomic, assign) BOOL applyingProgrammaticSelection;  // YES while we move the selection ourselves
 @end
@@ -106,8 +108,9 @@ static FileListPanel *sharedInstance = nil;
     _backgroundView.state = NSVisualEffectStateActive;
     [contentView addSubview:_backgroundView];
 
-    // Movies only checkbox at bottom
+    // Movies only / Images only checkboxes at bottom
     _moviesOnlyCheckbox = [self filterCheckboxWithTitle:@"Movies only" action:@selector(moviesOnlyChanged:) x:10];
+    _imagesOnlyCheckbox = [self filterCheckboxWithTitle:@"Images only" action:@selector(imagesOnlyChanged:) x:120];
 
     // Create scroll view for outline view (above checkbox)
     CGFloat checkboxHeight = 30;
@@ -271,6 +274,9 @@ static FileListPanel *sharedInstance = nil;
         if (_showMoviesOnly) {
             // Every video; the unplayable ones are listed grayed out
             passesFilter = isVideo;
+        } else if (_showImagesOnly) {
+            // Videos, playable or not, stay out
+            passesFilter = !isVideo && [MediaUtils isImageFile:path];
         } else {
             // Everything we recognise; unplayable videos are listed grayed out
             passesFilter = isVideo || [MediaUtils isImageFile:path];
@@ -293,6 +299,19 @@ static FileListPanel *sharedInstance = nil;
 
 - (void)moviesOnlyChanged:(id)sender {
     _showMoviesOnly = ([_moviesOnlyCheckbox state] == NSControlStateValueOn);
+    if (_showMoviesOnly) {
+        _showImagesOnly = NO;
+        [_imagesOnlyCheckbox setState:NSControlStateValueOff];
+    }
+    [self refilterAndReload];
+}
+
+- (void)imagesOnlyChanged:(id)sender {
+    _showImagesOnly = ([_imagesOnlyCheckbox state] == NSControlStateValueOn);
+    if (_showImagesOnly) {
+        _showMoviesOnly = NO;
+        [_moviesOnlyCheckbox setState:NSControlStateValueOff];
+    }
     [self refilterAndReload];
 }
 
@@ -352,7 +371,17 @@ static FileListPanel *sharedInstance = nil;
 
 - (void)setShowMoviesOnly:(BOOL)moviesOnly {
     _showMoviesOnly = moviesOnly;
+    if (moviesOnly) _showImagesOnly = NO;
     [_moviesOnlyCheckbox setState:moviesOnly ? NSControlStateValueOn : NSControlStateValueOff];
+    [_imagesOnlyCheckbox setState:_showImagesOnly ? NSControlStateValueOn : NSControlStateValueOff];
+    if (_allFiles) [self refilterAndReload];
+}
+
+- (void)setShowImagesOnly:(BOOL)imagesOnly {
+    _showImagesOnly = imagesOnly;
+    if (imagesOnly) _showMoviesOnly = NO;
+    [_imagesOnlyCheckbox setState:imagesOnly ? NSControlStateValueOn : NSControlStateValueOff];
+    [_moviesOnlyCheckbox setState:_showMoviesOnly ? NSControlStateValueOn : NSControlStateValueOff];
     if (_allFiles) [self refilterAndReload];
 }
 

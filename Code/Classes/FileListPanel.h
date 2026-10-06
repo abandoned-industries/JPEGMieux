@@ -27,5 +27,6 @@
 - (void)highlightCurrentFile;
 - (void)toggle;
 - (void)setShowMoviesOnly:(BOOL)moviesOnly;
+- (void)setShowImagesOnly:(BOOL)imagesOnly;
 
 @end

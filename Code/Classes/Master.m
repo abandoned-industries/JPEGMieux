@@ -120,6 +120,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     [myDisplayCommentButton setIntValue:(int)myCommentDisplay];
     [myShowFileListButton setIntValue:myShouldShowFileList];
     [myMoviesOnlyButton setIntValue:myMoviesOnly];
+    [myImagesOnlyButton setIntValue:myImagesOnly];
     [mySkipICloudFilesButton setIntValue:myShouldSkipICloudFiles];
     [myPreview setNeedsDisplay:YES];
 }
@@ -138,6 +139,8 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     [dict setBool:myShouldRecursivelyScanSubdirectories forKey:@"ShouldRecursivelyScanSubdirectories"];
     [dict setBool:myShouldPrecache forKey:@"PreloadImages"];
     [dict setBool:myShouldSkipICloudFiles forKey:@"ShouldSkipICloudFiles"];
+    [dict setBool:myMoviesOnly forKey:@"MoviesOnly"];
+    [dict setBool:myImagesOnly forKey:@"ImagesOnly"];
     // [dict setObject:aliasIfNecessary(myFileHierarchyArray) forKey:@"ChosenFiles"];
     dict[@"BackgroundColor"] = archive(myBackgroundColor);
     [dict setInt:(int)myCommentDisplay forKey:@"CommentDisplay"];
@@ -179,6 +182,9 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     myShouldPrecache=[dict boolForKey:@"PreloadImages"];
     // Default to YES (skip iCloud files) if not set
     myShouldSkipICloudFiles = dict[@"ShouldSkipICloudFiles"] ? [dict boolForKey:@"ShouldSkipICloudFiles"] : YES;
+    myMoviesOnly=[dict boolForKey:@"MoviesOnly"];
+    myImagesOnly=[dict boolForKey:@"ImagesOnly"];
+    if (myMoviesOnly && myImagesOnly) myImagesOnly=NO;  // mutually exclusive
     myCommentDisplay=[dict intForKey:@"CommentDisplay"];
     // Note: ChosenFiles are not restored from saved preferences (legacy behavior)
     // oldFiles = dict[@"ChosenFiles"];
@@ -223,6 +229,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     myFilesTable = (NSOutlineView *)modernWindowController.filesTable;
     myShowFileListButton = modernWindowController.showFileListButton;
     myMoviesOnlyButton = modernWindowController.moviesOnlyButton;
+    myImagesOnlyButton = modernWindowController.imagesOnlyButton;
     mySkipICloudFilesButton = modernWindowController.skipICloudFilesButton;
 
     if (prefsDict) [self loadFromDictionary:prefsDict];
@@ -407,9 +414,23 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
 
 - (IBAction)setMoviesOnly:(id)sender {
     myMoviesOnly=[sender intValue];
-    // Update the file list panel filter if it's visible
+    if (myMoviesOnly) myImagesOnly=NO;  // mutually exclusive with Images only
+    [myImagesOnlyButton setIntValue:myImagesOnly];
+    [self syncFileListFilters];
+}
+
+- (IBAction)setImagesOnly:(id)sender {
+    myImagesOnly=[sender intValue];
+    if (myImagesOnly) myMoviesOnly=NO;  // mutually exclusive with Movies only
+    [myMoviesOnlyButton setIntValue:myMoviesOnly];
+    [self syncFileListFilters];
+}
+
+// Pushes the Movies only / Images only choice to the file list panel
+- (void)syncFileListFilters {
     FileListPanel *panel = [FileListPanel sharedPanel];
     [panel setShowMoviesOnly:myMoviesOnly];
+    [panel setShowImagesOnly:myImagesOnly];
 }
 
 - (IBAction)setSkipICloudFiles:(id)sender {
@@ -498,11 +519,11 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     long i, max=[myFileHierarchyArray count];
     for (i=0; i<max; i++) [arr addObjectsFromArray:[FileHierarchy flattenHierarchy:[myFileHierarchyArray objectAtIndex:i]]];
 
-    // Filter to movies only if checkbox is checked
-    if (myMoviesOnly) {
+    // Filter to movies only / images only if a checkbox is checked
+    if (myMoviesOnly || myImagesOnly) {
         NSMutableArray *filtered = [[NSMutableArray alloc] init];
         for (NSString *path in arr) {
-            if ([MediaUtils isVideoFile:path]) {
+            if ([MediaUtils isVideoFile:path] == (myMoviesOnly ? YES : NO)) {
                 [filtered addObject:path];
             }
         }
@@ -566,7 +587,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
         if (myShouldShowFileList) {
             FileListPanel *panel = [FileListPanel sharedPanel];
             panel.fileListDelegate = self;
-            [panel setShowMoviesOnly:myMoviesOnly];
+            [self syncFileListFilters];
             [panel updateWithFiles:[myCurrentShow fileListIncludingSkipped] currentPath:[myCurrentShow currentFilePathForPanel]];
             [panel makeKeyAndOrderFront:nil];
         }

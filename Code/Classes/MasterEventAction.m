@@ -49,7 +49,7 @@
 - (EventAction)kbToggleFileList:(id)param {
     FileListPanel *panel = [FileListPanel sharedPanel];
     panel.fileListDelegate = self;
-    [panel setShowMoviesOnly:myMoviesOnly];
+    [self syncFileListFilters];
     [panel updateWithFiles:[myCurrentShow fileListIncludingSkipped] currentPath:[myCurrentShow currentFilePathForPanel]];
     [panel toggle];
     return eReeval;
