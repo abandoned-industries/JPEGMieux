@@ -150,7 +150,10 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     const id classes[]={[WindowShow class], [ScreenShow class], [DockShow class]};
     myShouldLoop=[dict boolForKey:@"ShouldLoop"];
     myShouldRandomize=[dict boolForKey:@"ShouldRandom"];
-    myTimeInterval=ClampedAdvanceInterval([dict floatForKey:@"TimeInterval"]);
+    myTimeInterval=[dict floatForKey:@"TimeInterval"];
+    // A saved 0 (an old bug, later clamped and re-saved as 0.5) makes
+    // auto-advance race; fall back to a sane default instead.
+    if (myTimeInterval <= kMinimumAdvanceInterval) myTimeInterval=5.0;
     tag=[dict intForKey:@"DisplayMode"];
     myDisplayModeClass=classes[tag%numShowTypes];
     myShouldAutoAdvance=[dict boolForKey:@"ShouldAutoAdvance"];
