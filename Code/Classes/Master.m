@@ -294,7 +294,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
     [self saveUndoableState];
 	for (NSURL *url in urls) {
         id fileHierarchy=[FileHierarchy hierarchyWithPath:[url path] recursive:myShouldRecursivelyScanSubdirectories];
-        [myFileHierarchyArray addObject:fileHierarchy];
+        if (fileHierarchy) [myFileHierarchyArray addObject:fileHierarchy];
     }
     [myFilesTable reloadData];
 }

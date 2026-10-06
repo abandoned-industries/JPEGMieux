@@ -15,53 +15,45 @@
 //returns nil if self cannot be resolved.  Does not attempt to mount volumes.
 //if isDir is not nil, returns whether or not the resolved file is a directory
 - (NSString*)resolveAliasesIsDir:(BOOL*)pIsDir {
+    // Alias chains longer than this are treated as unresolvable (also stops alias loops).
+    static const int kMaxAliasHops = 8;
+    NSArray *keys = @[NSURLIsAliasFileKey, NSURLIsDirectoryKey];
+
     NSURL *url = [NSURL fileURLWithPath:self];
     if (!url) {
         return nil;
     }
 
-    NSError *error = nil;
-    NSNumber *isDirectory = nil;
-    NSNumber *isAlias = nil;
-
-    // Check if this is a directory
-    [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:&error];
-    if (error) {
+    NSDictionary *values = [url resourceValuesForKeys:keys error:nil];
+    if (!values) {
         return nil;
     }
 
-    if ([isDirectory boolValue]) {
-        if (pIsDir) *pIsDir = YES;
-        return self;
-    }
-
-    // Check if this is an alias file
-    [url getResourceValue:&isAlias forKey:NSURLIsAliasFileKey error:&error];
-    if (error) {
-        return nil;
-    }
-
-    if (pIsDir) *pIsDir = [isDirectory boolValue];
-
-    if ([isAlias boolValue]) {
-        // Resolve the alias
-        NSError *resolveError = nil;
-        NSURL *resolvedURL = [NSURL URLByResolvingAliasFileAtURL:url
-                                                         options:NSURLBookmarkResolutionWithoutUI
-                                                           error:&resolveError];
-        if (resolveError || !resolvedURL) {
+    // Only Finder aliases need resolving; resolving is expensive and touches
+    // the volume, so everything else is used as is.
+    int hops = 0;
+    BOOL resolved = NO;
+    while ([values[NSURLIsAliasFileKey] boolValue]) {
+        if (++hops > kMaxAliasHops) {
             return nil;
         }
-
-        // Check if resolved URL is a directory
-        NSNumber *resolvedIsDirectory = nil;
-        [resolvedURL getResourceValue:&resolvedIsDirectory forKey:NSURLIsDirectoryKey error:nil];
-        if (pIsDir) *pIsDir = [resolvedIsDirectory boolValue];
-
-        return [resolvedURL path];
+        NSURL *target = [NSURL URLByResolvingAliasFileAtURL:url
+                                                    options:(NSURLBookmarkResolutionWithoutUI |
+                                                             NSURLBookmarkResolutionWithoutMounting)
+                                                      error:nil];
+        if (!target) {
+            return nil;
+        }
+        url = target;
+        resolved = YES;
+        values = [url resourceValuesForKeys:keys error:nil];
+        if (!values) {
+            return nil;
+        }
     }
 
-    return self;
+    if (pIsDir) *pIsDir = [values[NSURLIsDirectoryKey] boolValue];
+    return resolved ? [url path] : self;
 }
 
 - (NSString*)commonSuffixWithString:(NSString*)s {
