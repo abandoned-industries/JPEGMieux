@@ -1,4 +1,4 @@
-= JPEGMieux 3.1
+= JPEGMieux 3.2
 
 A fast, keyboard-driven slideshow viewer for big photo and video collections on the Mac. Native on Apple Silicon and Intel, macOS 12 or later.
 
@@ -32,7 +32,7 @@ I browse large photo archives: tens of thousands of images in nested folders on 
 
 * Window, full-screen, and Dock slideshow modes
 * **Video playback** (MP4, MOV, M4V, AVI, and more), with playback controls; unplayable videos are skipped
-* Movies-only filter
+* Movies-only and Images-only filters; videos the Mac cannot play are shown grayed out in the file list
 * Folder trees: add folders by dialog or drag and drop, with optional recursive scanning of subfolders
 * File list panel during a slideshow (Tab key), grouped by folder, for jumping to any photo
 * Rotate the current image 90° either way while viewing (display only; files are never changed)
@@ -139,7 +139,13 @@ To build:
 
 == Version History
 
-=== 3.1 (October 2026)
+=== 3.2 (October 2026)
+* Videos the Mac can't play (WMV, most FLV and MKV) are listed grayed out in the file list instead of vanishing
+* New "Images only" filter beside "Movies only"
+* Folder contents are sorted the way Finder sorts them
+* No more crash when a folder contains aliases or links that loop, or iMovie/Final Cut libraries (these are treated as single items)
+* JPEGMieux keeps its own settings (bundle ID com.wirelust.JPEGMieux); a saved auto-advance interval of 0.5 s or less is treated as unset (5 s)
+* (3.1 was tagged but never released; its changes are included here)
 * Sharper enlargement of small images: Lanczos resampling with light sharpening on the GPU
 * Rotation (R / E) and Move to Trash (D) are back
 * Saved key bindings load again (they had been silently ignored)
