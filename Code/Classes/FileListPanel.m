@@ -10,16 +10,15 @@
 
 static FileListPanel *sharedInstance = nil;
 
-// Cache validation results to avoid re-checking
-static NSMutableDictionary *videoValidationCache = nil;
-
 // Model for outline view: represents either a folder or a file
 @interface FileListItem : NSObject
 @property (nonatomic, strong) NSString *displayName;  // Relative folder path or file name
 @property (nonatomic, strong) NSString *fullPath;     // Full path (for files)
 @property (nonatomic, assign) BOOL isFolder;
 @property (nonatomic, strong) NSMutableArray *children;  // Files in folder (if folder)
-@property (nonatomic, assign) NSInteger fileCount;    // Number of files in folder
+@property (nonatomic, assign) NSInteger fileCount;    // Number of playable files in folder
+@property (nonatomic, assign) NSInteger unplayableCount;  // Videos in folder that can't be played
+@property (nonatomic, assign) BOOL unplayable;        // File row: video AVFoundation can't play
 @end
 
 @implementation FileListItem
@@ -32,7 +31,6 @@ static NSMutableDictionary *videoValidationCache = nil;
 @property (nonatomic, strong) NSButton *moviesOnlyCheckbox;
 @property (nonatomic, strong) NSArray *allFiles;  // All files before filtering
 @property (nonatomic, strong) NSArray *displayFiles;  // Filtered files for display
-@property (nonatomic, strong) NSArray *originalIndexMap;  // Maps display index -> original index
 @property (nonatomic, strong) NSMutableArray *outlineItems;  // Root items for outline view
 @property (nonatomic, strong) NSString *currentFilePath;  // Current file path for highlighting
 @property (nonatomic, strong) NSString *commonRoot;  // Common root directory
@@ -42,12 +40,6 @@ static NSMutableDictionary *videoValidationCache = nil;
 @end
 
 @implementation FileListPanel
-
-+ (void)initialize {
-    if (self == [FileListPanel class]) {
-        videoValidationCache = [[NSMutableDictionary alloc] init];
-    }
-}
 
 + (instancetype)sharedPanel {
     if (!sharedInstance) {
@@ -90,6 +82,19 @@ static NSMutableDictionary *videoValidationCache = nil;
     // No max size: big collections need a tall, wide list
 }
 
+- (NSButton *)filterCheckboxWithTitle:(NSString *)title action:(SEL)action x:(CGFloat)x {
+    NSButton *box = [NSButton checkboxWithTitle:title target:self action:action];
+    box.frame = NSMakeRect(x, 10, 105, 20);
+    box.autoresizingMask = NSViewMaxYMargin;
+    [box setAppearance:[NSAppearance appearanceNamed:NSAppearanceNameVibrantDark]];
+    NSMutableAttributedString *attrTitle = [[NSMutableAttributedString alloc] initWithString:title];
+    [attrTitle addAttribute:NSForegroundColorAttributeName value:[NSColor whiteColor] range:NSMakeRange(0, attrTitle.length)];
+    [attrTitle addAttribute:NSFontAttributeName value:[NSFont systemFontOfSize:12] range:NSMakeRange(0, attrTitle.length)];
+    box.attributedTitle = attrTitle;
+    [_backgroundView addSubview:box];
+    return box;
+}
+
 - (void)setupUI {
     NSView *contentView = [self contentView];
 
@@ -102,15 +107,7 @@ static NSMutableDictionary *videoValidationCache = nil;
     [contentView addSubview:_backgroundView];
 
     // Movies only checkbox at bottom
-    _moviesOnlyCheckbox = [NSButton checkboxWithTitle:@"Movies only" target:self action:@selector(moviesOnlyChanged:)];
-    _moviesOnlyCheckbox.frame = NSMakeRect(10, 10, 150, 20);
-    _moviesOnlyCheckbox.autoresizingMask = NSViewMaxYMargin;
-    [_moviesOnlyCheckbox setAppearance:[NSAppearance appearanceNamed:NSAppearanceNameVibrantDark]];
-    NSMutableAttributedString *attrTitle = [[NSMutableAttributedString alloc] initWithString:@"Movies only"];
-    [attrTitle addAttribute:NSForegroundColorAttributeName value:[NSColor whiteColor] range:NSMakeRange(0, attrTitle.length)];
-    [attrTitle addAttribute:NSFontAttributeName value:[NSFont systemFontOfSize:12] range:NSMakeRange(0, attrTitle.length)];
-    _moviesOnlyCheckbox.attributedTitle = attrTitle;
-    [_backgroundView addSubview:_moviesOnlyCheckbox];
+    _moviesOnlyCheckbox = [self filterCheckboxWithTitle:@"Movies only" action:@selector(moviesOnlyChanged:) x:10];
 
     // Create scroll view for outline view (above checkbox)
     CGFloat checkboxHeight = 30;
@@ -159,27 +156,12 @@ static NSMutableDictionary *videoValidationCache = nil;
 
 #pragma mark - File Validation
 
+// Images are trusted to NSImage. Videos go through the shared, cached AVFoundation
+// check (the slideshow uses the same one, so each file is probed once).
 - (BOOL)isFilePlayable:(NSString *)path {
-    // Images are always playable (we trust NSImage to handle them)
-    if ([MediaUtils isImageFile:path]) {
-        return YES;
-    }
-
-    // For videos, check the cache first
-    if ([MediaUtils isVideoFile:path]) {
-        NSNumber *cached = videoValidationCache[path];
-        if (cached) {
-            return [cached boolValue];
-        }
-
-        // Validate and cache
-        BOOL playable = [MediaUtils isVideoPlayable:path];
-        videoValidationCache[path] = @(playable);
-        return playable;
-    }
-
-    // Unknown file types - assume not playable
-    return NO;
+    if ([MediaUtils isImageFile:path]) return YES;
+    if ([MediaUtils isVideoFile:path]) return [MediaUtils isVideoPlayableCached:path];
+    return NO;  // Unknown file types - assume not playable
 }
 
 - (NSString *)commonRootOfPaths:(NSArray *)paths {
@@ -215,6 +197,11 @@ static NSMutableDictionary *videoValidationCache = nil;
     }
 
     return current;
+}
+
+// A video the show can't play. Cheap: the answer is cached by the filter pass.
+- (BOOL)isUnplayablePath:(NSString *)path {
+    return [MediaUtils isVideoFile:path] && ![MediaUtils isVideoPlayableCached:path];
 }
 
 - (void)buildOutlineViewStructure:(NSArray *)files {
@@ -254,8 +241,10 @@ static NSMutableDictionary *videoValidationCache = nil;
         fileItem.fullPath = filePath;
         fileItem.isFolder = NO;
         fileItem.displayName = [filePath lastPathComponent];
+        fileItem.unplayable = [self isUnplayablePath:filePath];
 
         FileListItem *folderItem = folderMap[folder];
+        if (fileItem.unplayable) folderItem.unplayableCount++;
         [folderItem.children addObject:fileItem];
         _itemsByPath[filePath] = fileItem;
     }
@@ -268,60 +257,51 @@ static NSMutableDictionary *videoValidationCache = nil;
     // Add sorted folders to outline items
     for (NSString *folder in folderOrder) {
         FileListItem *folderItem = folderMap[folder];
-        folderItem.fileCount = [folderItem.children count];
+        folderItem.fileCount = [folderItem.children count] - folderItem.unplayableCount;
         [_outlineItems addObject:folderItem];
     }
 }
 
-- (void)filterFilesAndBuildMapping:(NSArray *)files currentIndex:(NSInteger)currentIndex {
+- (void)filterFilesAndBuildMapping:(NSArray *)files {
     NSMutableArray *filtered = [[NSMutableArray alloc] init];
-    NSMutableArray *indexMap = [[NSMutableArray alloc] init];
-    NSString *newCurrentPath = nil;
 
-    for (NSInteger i = 0; i < (NSInteger)[files count]; i++) {
-        NSString *path = files[i];
-
-        // Check if file passes the filter
-        BOOL passesFilter = NO;
+    for (NSString *path in files) {
+        BOOL isVideo = [MediaUtils isVideoFile:path];
+        BOOL passesFilter;
         if (_showMoviesOnly) {
-            // Only show playable videos
-            passesFilter = [MediaUtils isVideoFile:path] && [self isFilePlayable:path];
+            // Every video; the unplayable ones are listed grayed out
+            passesFilter = isVideo;
         } else {
-            // Show all playable files
-            passesFilter = [self isFilePlayable:path];
+            // Everything we recognise; unplayable videos are listed grayed out
+            passesFilter = isVideo || [MediaUtils isImageFile:path];
         }
-
-        if (passesFilter) {
-            if (i == currentIndex) {
-                newCurrentPath = path;
-            }
-            [filtered addObject:path];
-            [indexMap addObject:@(i)];
-        }
+        if (passesFilter) [filtered addObject:path];
     }
 
     _displayFiles = [filtered copy];
-    _originalIndexMap = [indexMap copy];
-    _currentFilePath = newCurrentPath;
 
     // Compute common root and build outline structure
     _commonRoot = [self commonRootOfPaths:_displayFiles];
     [self buildOutlineViewStructure:_displayFiles];
 }
 
-- (void)moviesOnlyChanged:(id)sender {
-    _showMoviesOnly = ([_moviesOnlyCheckbox state] == NSControlStateValueOn);
-    [self filterFilesAndBuildMapping:_allFiles currentIndex:_currentIndex];
+- (void)refilterAndReload {
+    [self filterFilesAndBuildMapping:_allFiles];
     [self reloadOutlinePreservingSelectionCallbacks];
     [self highlightCurrentFile];
 }
 
+- (void)moviesOnlyChanged:(id)sender {
+    _showMoviesOnly = ([_moviesOnlyCheckbox state] == NSControlStateValueOn);
+    [self refilterAndReload];
+}
+
 #pragma mark - Public Methods
 
-- (void)updateWithFiles:(NSArray *)files currentIndex:(NSInteger)index {
+- (void)updateWithFiles:(NSArray *)files currentPath:(NSString *)currentPath {
     _allFiles = [files copy];  // Store for re-filtering when checkbox changes
-    _currentIndex = index;
-    [self filterFilesAndBuildMapping:files currentIndex:index];
+    _currentFilePath = currentPath;
+    [self filterFilesAndBuildMapping:files];
     [self reloadOutlinePreservingSelectionCallbacks];
     [self highlightCurrentFile];
 }
@@ -373,19 +353,7 @@ static NSMutableDictionary *videoValidationCache = nil;
 - (void)setShowMoviesOnly:(BOOL)moviesOnly {
     _showMoviesOnly = moviesOnly;
     [_moviesOnlyCheckbox setState:moviesOnly ? NSControlStateValueOn : NSControlStateValueOff];
-    if (_allFiles) {
-        [self filterFilesAndBuildMapping:_allFiles currentIndex:_currentIndex];
-        [self reloadOutlinePreservingSelectionCallbacks];
-        [self highlightCurrentFile];
-    }
-}
-
-- (void)setCurrentIndex:(NSInteger)currentIndex {
-    _currentIndex = currentIndex;
-    // currentIndex indexes the slideshow's own list (_allFiles), not the filtered display list
-    if (currentIndex >= 0 && currentIndex < (NSInteger)[_allFiles count]) {
-        [self setCurrentFilePath:_allFiles[currentIndex]];
-    }
+    if (_allFiles) [self refilterAndReload];
 }
 
 - (void)setCurrentFilePath:(NSString *)path {
@@ -411,7 +379,7 @@ static NSMutableDictionary *videoValidationCache = nil;
         id item = [_outlineView itemAtRow:row];
         if ([item isKindOfClass:[FileListItem class]]) {
             FileListItem *listItem = (FileListItem *)item;
-            if (!listItem.isFolder) {
+            if (!listItem.isFolder && !listItem.unplayable) {
                 // File was clicked
                 if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
                     [_fileListDelegate fileListPanel:self didSelectFilePath:listItem.fullPath];
@@ -468,6 +436,12 @@ static NSMutableDictionary *videoValidationCache = nil;
 
 #pragma mark - NSOutlineViewDelegate
 
+// Unplayable videos can't be clicked, reached by arrow keys or jumped to
+- (BOOL)outlineView:(NSOutlineView *)outlineView shouldSelectItem:(id)item {
+    if ([item isKindOfClass:[FileListItem class]]) return !((FileListItem *)item).unplayable;
+    return YES;
+}
+
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification {
     if (_applyingProgrammaticSelection) return;  // we moved the selection ourselves; not a user pick
     NSInteger row = [_outlineView selectedRow];
@@ -478,7 +452,7 @@ static NSMutableDictionary *videoValidationCache = nil;
             if (listItem.isFolder) {
                 // Picking a folder row opens it so its files can be chosen
                 if (![_outlineView isItemExpanded:listItem]) [_outlineView expandItem:listItem];
-            } else {
+            } else if (!listItem.unplayable) {
                 // File was selected
                 if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
                     [_fileListDelegate fileListPanel:self didSelectFilePath:listItem.fullPath];
@@ -508,15 +482,26 @@ static NSMutableDictionary *videoValidationCache = nil;
 
         if (listItem.isFolder) {
             // Folder row - bold and show file count
-            cell.stringValue = [NSString stringWithFormat:@"%@ — %ld", listItem.displayName, (long)listItem.fileCount];
+            NSString *count = listItem.unplayableCount > 0
+                ? [NSString stringWithFormat:@"%ld (+%ld unplayable)", (long)listItem.fileCount, (long)listItem.unplayableCount]
+                : [NSString stringWithFormat:@"%ld", (long)listItem.fileCount];
+            cell.stringValue = [NSString stringWithFormat:@"%@ — %@", listItem.displayName, count];
+            cell.toolTip = nil;
             cell.textColor = [NSColor colorWithWhite:0.85 alpha:1.0];
             cell.font = [NSFont boldSystemFontOfSize:13];
         } else {
             // File row
             cell.stringValue = listItem.displayName;
+            cell.toolTip = nil;
 
-            // Highlight current file with different color
-            if ([listItem.fullPath isEqual:_currentFilePath]) {
+            if (listItem.unplayable) {
+                // Listed for completeness, but the show skips it
+                NSString *ext = [[listItem.fullPath pathExtension] uppercaseString];
+                cell.textColor = [NSColor disabledControlTextColor];
+                cell.font = [NSFont systemFontOfSize:13];
+                cell.toolTip = [NSString stringWithFormat:@"Can\u2019t play this format (%@)", ext.length ? ext : @"unknown"];
+            } else if ([listItem.fullPath isEqual:_currentFilePath]) {
+                // Highlight current file with different color
                 cell.textColor = [NSColor systemYellowColor];
                 cell.font = [NSFont boldSystemFontOfSize:13];
             } else {
@@ -572,7 +557,7 @@ static NSMutableDictionary *videoValidationCache = nil;
             id item = [_outlineView itemAtRow:row];
             if ([item isKindOfClass:[FileListItem class]]) {
                 FileListItem *listItem = (FileListItem *)item;
-                if (!listItem.isFolder) {
+                if (!listItem.isFolder && !listItem.unplayable) {
                     if ([_fileListDelegate respondsToSelector:@selector(fileListPanel:didSelectFilePath:)]) {
                         [_fileListDelegate fileListPanel:self didSelectFilePath:listItem.fullPath];
                     }

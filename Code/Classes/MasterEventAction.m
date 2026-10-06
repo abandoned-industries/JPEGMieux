@@ -50,7 +50,7 @@
     FileListPanel *panel = [FileListPanel sharedPanel];
     panel.fileListDelegate = self;
     [panel setShowMoviesOnly:myMoviesOnly];
-    [panel updateWithFiles:[myCurrentShow fileList] currentIndex:[myCurrentShow currentFileIndex]];
+    [panel updateWithFiles:[myCurrentShow fileListIncludingSkipped] currentPath:[myCurrentShow currentFilePathForPanel]];
     [panel toggle];
     return eReeval;
 }
@@ -118,7 +118,7 @@ static BOOL removePathFromHierarchy(NSString* path, NSMutableArray* items) {
     if (!anyLeft) return eStop;
 
     FileListPanel* panel=[FileListPanel sharedPanel];
-    [panel updateWithFiles:[myCurrentShow fileList] currentIndex:[myCurrentShow currentFileIndex]];
+    [panel updateWithFiles:[myCurrentShow fileListIncludingSkipped] currentPath:[myCurrentShow currentFilePathForPanel]];
 
     // Trashed the last picture: step back to the new last one instead of ending the show
     if (removedLast) {

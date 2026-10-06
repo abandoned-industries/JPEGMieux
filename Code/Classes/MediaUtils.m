@@ -159,6 +159,22 @@
     return YES;
 }
 
++ (BOOL)isVideoPlayableCached:(NSString *)path {
+    if (!path) return NO;
+    static NSMutableDictionary *cache = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ cache = [[NSMutableDictionary alloc] init]; });
+    @synchronized (cache) {
+        NSNumber *cached = cache[path];
+        if (cached) return [cached boolValue];
+    }
+    BOOL playable = [self isVideoPlayable:path];  // slow; keep it outside the lock
+    @synchronized (cache) {
+        cache[path] = @(playable);
+    }
+    return playable;
+}
+
 + (BOOL)isMediaPlayable:(NSString *)path {
     if (!path) return NO;
 

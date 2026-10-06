@@ -17,12 +17,12 @@
 
 @property (nonatomic, weak) id<FileListPanelDelegate> fileListDelegate;
 @property (nonatomic, strong, readonly) NSArray *displayFiles;  // Validated files for display
-@property (nonatomic, assign) NSInteger currentIndex;  // Index in original (unfiltered) array
 
 + (instancetype)sharedPanel;
 
-// Update with file list - will filter out unplayable video files
-- (void)updateWithFiles:(NSArray *)files currentIndex:(NSInteger)index;
+// Update with the show's files (including videos it skipped as unplayable) and the
+// path now showing. Unplayable videos are listed grayed out and cannot be picked.
+- (void)updateWithFiles:(NSArray *)files currentPath:(NSString *)currentPath;
 - (void)setCurrentFilePath:(NSString *)path;  // Path of the image now showing; never triggers a jump
 - (void)highlightCurrentFile;
 - (void)toggle;

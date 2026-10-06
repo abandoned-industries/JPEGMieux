@@ -24,6 +24,9 @@
 - (void)beginShow:(NSArray*)files {
     const unsigned int styleMask=NSWindowStyleMaskBorderless;
     myChosenFiles=[files mutableCopy];
+    myOriginalFiles=[files copy];
+    mySkippedFiles=[[NSMutableSet alloc] init];
+    myWasShuffled=NO;
     if (myCommentStyle==CommentStyleWindow) {
         myCommentWindow=[[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 6, 6)
                                                     styleMask:styleMask
@@ -144,17 +147,13 @@
             // Check if this is a video file
             if ([MediaUtils isVideoFile:path]) {
                 NSURL *videoURL = [NSURL fileURLWithPath:path];
-                AVAsset *asset = [AVAsset assetWithURL:videoURL];
 
-                // Synchronously check if video is playable
-                NSArray *keys = @[@"playable", @"tracks"];
-                NSError *error = nil;
-                for (NSString *key in keys) {
-                    [asset statusOfValueForKey:key error:&error];
-                }
-
-                // Skip videos that can't be played
-                if (![asset isPlayable] || [[asset tracksWithMediaType:AVMediaTypeVideo] count] == 0) {
+                // Skip videos that can't be played. The file stays known to the
+                // file list (as grayed out) but leaves the show, so it is
+                // skipped once. The check is cached and shared with the list.
+                if (![MediaUtils isVideoPlayableCached:path]) {
+                    [mySkippedFiles addObject:path];
+                    [myImageCache removeAllObjects];  // keyed by index, now stale
                     [myChosenFiles removeObjectAtIndex:myCurrentImageIndex--];
                     continue;
                 }
@@ -258,6 +257,7 @@
 }
 
 - (void)reshuffle {
+    myWasShuffled=YES;
     [myChosenFiles shuffle];
     if (myCachedImages) {
         [myCachedImages shuffle];
@@ -496,6 +496,22 @@
 
 - (NSArray *)fileList {
     return [myChosenFiles copy];
+}
+
+- (NSArray *)fileListIncludingSkipped {
+    if (![mySkippedFiles count]) return [myChosenFiles copy];
+    if (myWasShuffled) {
+        // The original order no longer means anything; list the skipped files last
+        return [[myChosenFiles copy] arrayByAddingObjectsFromArray:[mySkippedFiles allObjects]];
+    }
+    // Walk the original order, keeping what is still in the show (trashed files
+    // dropped out of it) plus what the show skipped as unplayable
+    NSSet *chosen=[NSSet setWithArray:myChosenFiles];
+    NSMutableArray *merged=[NSMutableArray arrayWithCapacity:[myChosenFiles count]+[mySkippedFiles count]];
+    for (NSString *path in myOriginalFiles) {
+        if ([chosen containsObject:path] || [mySkippedFiles containsObject:path]) [merged addObject:path];
+    }
+    return merged;
 }
 
 - (NSInteger)currentFileIndex {

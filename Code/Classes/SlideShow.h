@@ -21,6 +21,9 @@
     NSTextField* myCommentField;
     CommentStyle myCommentStyle;
     NSMutableArray* myChosenFiles;
+    NSArray* myOriginalFiles;           // the list as the show began, in order
+    NSMutableSet* mySkippedFiles;       // unplayable videos dropped from myChosenFiles
+    BOOL myWasShuffled;
     int myCurrentImageIndex;
     NSImage* myNextImage;
     NSURL* myNextVideoURL;  // For video files
@@ -90,6 +93,8 @@
 
 // File list navigation
 - (NSArray *)fileList;
+// fileList plus the unplayable videos the show skipped, in their original places
+- (NSArray *)fileListIncludingSkipped;
 - (NSInteger)currentFileIndex;
 - (NSString *)currentFilePathForPanel;
 - (void)jumpToIndex:(NSInteger)index;

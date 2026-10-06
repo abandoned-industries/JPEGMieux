@@ -567,7 +567,7 @@ static NSString* pendingFileJumpPath = nil;  // For file list panel navigation
             FileListPanel *panel = [FileListPanel sharedPanel];
             panel.fileListDelegate = self;
             [panel setShowMoviesOnly:myMoviesOnly];
-            [panel updateWithFiles:[myCurrentShow fileList] currentIndex:[myCurrentShow currentFileIndex]];
+            [panel updateWithFiles:[myCurrentShow fileListIncludingSkipped] currentPath:[myCurrentShow currentFilePathForPanel]];
             [panel makeKeyAndOrderFront:nil];
         }
 
